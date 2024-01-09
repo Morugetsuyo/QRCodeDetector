@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "version": "0.1.0",
+  "name": "QR Code Reader",
+  "description": "QR Code Reader",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "activeTab",
+    "tabs"
+   ],
+  "optional_permissions": [
+    "declarativeNetRequestWithHostAccess",
+    "sidePanel"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
+   "background": {
+    "service_worker": "worker.js"
+  },
+  
+  "icons": {
+    "16": "data/icons.png",
+    "32": "data/icons.png",
+    "48": "data/icons.png",
+    "128": "data/icons.png"
+  },
+  "action": {},
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
+}
