@@ -17,9 +17,18 @@
     "*://*/*"
   ],
    "background": {
-    "service_worker": "worker.js"
+    "service_worker": "background.js"
   },
-  
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "data/window/index.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "icons": {
     "16": "data/icons.png",
     "32": "data/icons.png",
