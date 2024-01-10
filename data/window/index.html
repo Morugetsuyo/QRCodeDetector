@@ -1,55 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>QR Code Reader</title>
-  <link rel="stylesheet" type="text/css" href="index.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Detector</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #image-display-area, #result-display-area {
+      border: 1px solid #000;
+      width: 280px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 5px;
+      background-color: #f8f8f8;
+    }
+    button {
+      margin: 5px;
+    }
+  </style>
 </head>
 <body>
-  <tabs-view>
-    <div title="Scan" data-tab="scan" data-active="true">
-      <div vbox style="height: 100%">
-        <div><select id="devices"></select></div>
-        <div flex="1" id="display" data-message="">
-          <div>
-            <video autoplay="true" id="video"></video>
-          </div>
-          <div>
-            <canvas></canvas>
-          </div>
-        </div>
-        <div data-id="tools">
-          <label for="auto-start" hbox title="Automatically start the webcam scanning on tab switch or startup">
-            <input type="checkbox" id="auto-start">
-            <svg version="1.1" viewBox="0 0 24 24" width="12">
-              <path d="M22 2v20h-20v-20h20zm2-2h-24v24h24v-24zm-5.541 8.409l-1.422-1.409-7.021 7.183-3.08-2.937-1.395 1.435 4.5 4.319 8.418-8.591z"/>
-              <rect x="1" y="1" width="22" height="22" stroke="#000" stroke-width="2" fill="transparent"/>
-            </svg><span>Auto <span class="minihide">Start</span></span></label>
-          <label id="toggle" title="Start/Stop webcam scanning manually" class="btn">Start</label>
-          <label title="Scan a local image from disk">Local <span class="minihide">Image </span><input type="file" accept="image/*"></label>
-        </div>
-      </div>
-    </div>
-    <div title="Results" data-tab="results">
-      <div vbox style="height: 100%">
-        <div id="history" flex="1"></div>
-        <div data-id="tools">
-          <label title="Clear History">
-            <button id="clean">Clear <span class="minihide">History</span></button>
-          </label>
-          <label title="Delete Selected Entries">
-            <input type="button" id="delete" value="Delete" disabled>
-          </label>
-          <label title="Coly Selected Entries">
-            <input type="button" id="copy" value="Copy" disabled>
-          </label>
-        </div>
-      </div>
-    </div>
-  </tabs-view>
-
-  <script type="text/javascript" src="components/tabs-view.js"></script>
+  <div class="popup-container">
+    <button id="scan-btn">Scan</button>
+    <button id="local-btn">Local</button>
+    <div id="image-display-area">Image will be displayed here</div>
+    <div id="text">Result</div>
+    <div id="result-display-area">Result will be displayed here</div>
+  </div>
   <script type="text/javascript" src="QRCode.js"></script>
   <script type="text/javascript" src="ZBar/zbar.js"></script>
   <script type="text/javascript" src="index.js"></script>
