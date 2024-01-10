@@ -35,7 +35,9 @@
     "48": "data/icons.png",
     "128": "data/icons.png"
   },
-  "action": {},
+  "action": {
+    "default_popup": "data/window/index.html"
+  },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   }
