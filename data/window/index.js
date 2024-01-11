@@ -52,9 +52,9 @@ qrcode.on('detect', e => {
     cache.add(e.data);
   }
 
-  if (tools.stream && tools.stream.active) {
+  /*if (tools.stream && tools.stream.active) {
     tools.vidoe.off();
-  }
+  }*/
   // add to update history
   tools.append(e);
 });
@@ -63,7 +63,7 @@ qrcode.on('detect', e => {
 document.addEventListener('keydown', e => tabsView.keypress(e));
 // tools
 const tools = {
-  vidoe: {
+  /*vidoe: {
     on() {
       const deviceId = document.getElementById('devices').value;
 
@@ -107,7 +107,7 @@ const tools = {
       }
       catch (e) {}
     }
-  },
+  },*/
   async detect(source, width, height) {
     cache.clear();
     await qrcode.ready();
@@ -162,14 +162,14 @@ const tools = {
 };
 
 // tab change
-tabsView.addEventListener('tabs-view::change', ({detail}) => {
+/*tabsView.addEventListener('tabs-view::change', ({detail}) => {
   if (detail.dataset.tab === 'scan' && document.getElementById('auto-start').checked) {
     tools.vidoe.on();
   }
   if (detail.dataset.tab === 'results' && tools.stream && tools.stream.active) {
     tools.vidoe.off();
   }
-});
+});*/
 
 // on image
 const listen = () => {
@@ -199,7 +199,7 @@ const listen = () => {
     img.src = typeof file === 'string' ? file : URL.createObjectURL(file);
   };
   document.querySelector('input[type=file]').addEventListener('change', e => {
-    tools.vidoe.off();
+    //tools.vidoe.off();
 
     next(e.target.files[0]);
     e.target.value = '';
@@ -257,12 +257,12 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.assign(prefs, ps);
     document.getElementById('auto-start').checked = prefs['auto-start'];
     // tabsView already loaded
-    if (prefs['auto-start'] && tabsView.ready && tabsView.active().dataset.tab === 'scan' && args.has('href') === false) {
+    /*if (prefs['auto-start'] && tabsView.ready && tabsView.active().dataset.tab === 'scan' && args.has('href') === false) {
       tools.vidoe.on();
     }
-    else {
+    else {*/
       notify(undefined, false);
-    }
+   // }
     // history
     if (prefs.save) {
       for (const e of prefs.history.reverse()) {
@@ -314,14 +314,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // prefs
-document.getElementById('auto-start').addEventListener('change', e => {
+/*document.getElementById('auto-start').addEventListener('change', e => {
   chrome.storage.local.set({
     'auto-start': e.target.checked
   });
   tools.vidoe[e.target.checked ? 'on' : 'off']();
-});
+});*/
 // video
-video.addEventListener('play', () => {
+/*video.addEventListener('play', () => {
   document.getElementById('display').dataset.mode = 'video';
   document.getElementById('toggle').textContent = 'Stop';
 });
@@ -329,16 +329,16 @@ video.addEventListener('suspend', () => {
   document.getElementById('display').dataset.mode = 'image';
   document.getElementById('toggle').textContent = 'Start';
   notify(undefined, false);
-});
+});*/
 // toggle
-document.getElementById('toggle').addEventListener('click', () => {
+/*document.getElementById('toggle').addEventListener('click', () => {
   if (tools.stream && tools.stream.active) {
     tools.vidoe.off();
   }
   else {
     tools.vidoe.on();
   }
-});
+});*/
 // clean
 document.getElementById('clean').addEventListener('click', () => {
   if (window.confirm('Delete the entire history?')) {
@@ -386,7 +386,7 @@ document.getElementById('delete').addEventListener('click', () => {
 });
 
 // Camera selector
-chrome.storage.local.get({
+/*chrome.storage.local.get({
   camera: 0
 }, prefs => {
   navigator.mediaDevices.enumerateDevices().then(devices => {
@@ -407,7 +407,7 @@ document.getElementById('devices').addEventListener('change', e => chrome.storag
 }, () => {
   tools.vidoe.off();
   tools.vidoe.on();
-}));
+}));*/
 
 // link opening
 document.addEventListener('click', e => {
