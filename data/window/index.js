@@ -23,7 +23,7 @@ const notify = (msg, revert = true) => {
     }, 3000);
   }
 };
-notify.DEFALUT = `Click 'Start' to scan QR or barcode from webcam or drop a local file`;
+notify.DEFALUT = `Click 'scan' to scan QR or barcode from current tab or drop a local file`;
 
 if (location.href.indexOf('mode=popup') !== -1) {
   document.body.classList.add('popup');
