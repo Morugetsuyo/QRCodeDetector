@@ -79,7 +79,7 @@ scanButton.addEventListener('click', () => {
     
     // Register event listener for QRCode detection
     qrcode.on('detect', e => {
-    const resultText = e.data ? QR Code Detected: ${e.data} : 'No QR Code';
+    const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
     resultDisplayArea.textContent = resultText;
     });
     
