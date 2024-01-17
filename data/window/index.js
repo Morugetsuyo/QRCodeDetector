@@ -1,429 +1,106 @@
-/* global QRCode */
 'use strict';
 
-const args = new URLSearchParams(location.search);
-const info = {};
-chrome.tabs.query({
-  currentWindow: true,
-  active: true
-}, tabs => {
-  if (tabs.length) {
-    info.tabId = tabs[0].id;
-    info.windowId = tabs[0].windowId;
-  }
-});
-
-
-const notify = (msg, revert = true) => {
-  document.querySelector('[data-message]').dataset.message = msg === undefined ? notify.DEFALUT : msg;
-  clearTimeout(notify.id);
-  if (revert) {
-    notify.id = setTimeout(() => {
-      document.querySelector('[data-message]').dataset.message = notify.DEFALUT;
-    }, 3000);
-  }
-};
-notify.DEFALUT = `Click 'scan' to scan QR or barcode from current tab or drop a local file`;
-
-if (location.href.indexOf('mode=popup') !== -1) {
-  document.body.classList.add('popup');
-}
-
-const tabsView = document.querySelector('tabs-view');
-const canvas = document.querySelector('canvas');
-const video = document.getElementById('video');
-const history = document.getElementById('history');
+// Grab the necessary DOM elements
 const qrcode = new QRCode();
+const scanButton = document.getElementById('scan-btn');
+const localButton = document.getElementById('local-btn');
+const imageInput = document.getElementById('image-input');
+const imageDisplayArea = document.getElementById('image-display-area');
+const resultDisplayArea = document.getElementById('result-display-area');
 
-const prefs = {
-  'history': [],
-  'auto-start': false,
-  'save': true,
-  'max': 100
+// Helper function to display image and results
+const displayImageAndResult = (dataUrl, resultText) => {
+  // Display the image
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  imageDisplayArea.innerHTML = ''; // Clear the display area first
+  imageDisplayArea.appendChild(img);
+
+  // Display the result
+  resultDisplayArea.textContent = resultText;
 };
 
-const hashCode = s => Array.from(s).reduce((s, c) => Math.imul(31, s) + c.charCodeAt(0) | 0, 0);
-
-const cache = new Set();
-
-qrcode.on('detect', e => {
-  if (cache.has(e.data) === false) {
-    qrcode.draw(e, canvas);
-    cache.add(e.data);
-  }
-
-  /*if (tools.stream && tools.stream.active) {
-    tools.vidoe.off();
-  }*/
-  // add to update history
-  tools.append(e);
-});
-
-// focus
-document.addEventListener('keydown', e => tabsView.keypress(e));
-// tools
-const tools = {
-  /*vidoe: {
-    on() {
-      const deviceId = document.getElementById('devices').value;
-
-      const o = deviceId ? {
-        video: {
-          deviceId
-        }
-      } : {
-        video: {
-          facingMode: 'environment'
-        }
-      };
-
-      navigator.mediaDevices.getUserMedia(o).then(stream => {
-        tools.stream = stream;
-
-        notify('', false);
-        video.srcObject = stream;
-        video.style.visibility = 'visible';
-        const detect = () => {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          if (canvas.width && canvas.height) {
-            tools.detect(video, canvas.width, canvas.height);
-          }
-        };
-        tools.vidoe.id = setInterval(detect, 200);
-        detect();
-      }).catch(e => {
-        notify(e.message);
-      });
-    },
-    off() {
-      clearInterval(tools.vidoe.id);
-      try {
-        for (const track of tools.stream.getTracks()) {
-          track.stop();
-        }
-        video.style.visibility = 'hidden';
-        qrcode.clean(canvas);
-      }
-      catch (e) {}
-    }
-  },*/
-  async detect(source, width, height) {
-    cache.clear();
-    await qrcode.ready();
-    qrcode.detect(source, width, height);
-  },
-  append(e, focus = true) {
-    const id = 'q-' + hashCode(e.data);
-    const div = document.getElementById(id);
-    if (div) {
-      history.insertAdjacentElement('afterbegin', div);
-    }
-    else {
-      const urlify = content => {
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return content.replace(urlRegex, '<a href="$1" target=_blank class="link">$1</a>');
-      };
-
-      const div = document.createElement('label');
-      div.data = e.data;
-      div.id = id;
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-
-      const symbol = document.createElement('span');
-      symbol.textContent = 'Type: ' + e.symbol;
-      const content = document.createElement('pre');
-      content.innerHTML = urlify(e.data);
-      div.append(input);
-      div.append(symbol);
-      div.append(content);
-      history.insertAdjacentElement('afterbegin', div);
-      if (prefs.save) {
-        prefs.history = prefs.history.filter(o => o.data !== e.data);
-        prefs.history.unshift({
-          data: e.data,
-          symbol: e.symbol
-        });
-        prefs.history = prefs.history.slice(0, prefs.max);
-        chrome.storage.local.set({
-          history: prefs.history
-        });
-      }
-    }
-    if (focus) {
-      tabsView.keypress({
-        metaKey: true,
-        code: 'Digit2',
-        key: 2
-      });
-    }
-  }
-};
-
-// tab change
-/*tabsView.addEventListener('tabs-view::change', ({detail}) => {
-  if (detail.dataset.tab === 'scan' && document.getElementById('auto-start').checked) {
-    tools.vidoe.on();
-  }
-  if (detail.dataset.tab === 'results' && tools.stream && tools.stream.active) {
-    tools.vidoe.off();
-  }
-});*/
-
-// on image
-const listen = () => {
-  const next = file => {
-    document.title = 'Loading Image ...';
-    notify('Loading...', false);
-
-    const img = new Image();
+// Function to process the image for QR code detection
+const processImageForQRCode = (dataUrl) => {
+  const img = new Image();
+  img.crossOrigin = 'anonymous'; // Handle cross-origin images
+  img.onload = async () => {
+    const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    img.crossOrigin = 'anonymous';
-    img.onload = function() {
-      document.title = chrome.runtime.getManifest().name;
-      notify('', false);
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      ctx.fillStyle = '#fff';
-      // works on transparent codes
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-      tools.detect(canvas, img.naturalWidth, img.naturalHeight);
-    };
-    img.onerror = e => {
-      document.title = 'Loading Failed!';
-      notify(e.message || 'Loading failed. Use right-click context menu over the toolbar button to allow cross-origin access');
-    };
-    img.src = typeof file === 'string' ? file : URL.createObjectURL(file);
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+
+    // Fill the canvas with a white background to handle images with transparency
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the image onto the canvas
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // Optionally, apply preprocessing to the canvas here, if need for better QR code detection
+    
+    try {
+      await qrcode.ready();
+      qrcode.detect(canvas, canvas.width, canvas.height);
+    } catch (e) {
+      console.error('QR Code detection error:', e);
+    }
   };
-  document.querySelector('input[type=file]').addEventListener('change', e => {
-    //tools.vidoe.off();
-
-    next(e.target.files[0]);
-    e.target.value = '';
-  });
-  document.addEventListener('dragover', e => e.preventDefault());
-  document.addEventListener('drop', e => {
-    e.preventDefault();
-    for (const file of e.dataTransfer.items) {
-      if (file.kind === 'file' && file.type.startsWith('image/')) {
-        return next(file.getAsFile());
-      }
-    }
-  });
-  if (args.has('href')) {
-    next(args.get('href'));
-  }
-  if (args.get('mode') === 'sidebar') {
-    chrome.runtime.sendMessage({
-      method: 'args'
-    }, o => {
-      if (o && o.href) {
-        next(o.href);
-      }
-    });
-    chrome.runtime.onMessage.addListener(request => {
-      if (request.href && request.method === 'sidebar-action' && request.windowId === info.windowId) {
-        // clean
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        notify('Preparing...', false);
-        // proceed
-        if (tabsView.active().dataset.tab === 'results') {
-          tabsView.addEventListener('tabs-view::change', () => {
-            next(request.href);
-          }, {once: true});
-
-          tabsView.keypress({
-            metaKey: true,
-            code: 'Digit1',
-            key: 1
-          });
-        }
-        else {
-          next(request.href);
-        }
-      }
-    });
-  }
+  img.onerror = (e) => {
+    console.error('Image load error:', e);
+    // Handle image loading errors here
+  };
+  img.src = dataUrl;
 };
 
-// init
-document.addEventListener('DOMContentLoaded', () => {
-  // next
-  const next = () => chrome.storage.local.get(prefs, ps => {
-    Object.assign(prefs, ps);
-    document.getElementById('auto-start').checked = prefs['auto-start'];
-    // tabsView already loaded
-    /*if (prefs['auto-start'] && tabsView.ready && tabsView.active().dataset.tab === 'scan' && args.has('href') === false) {
-      tools.vidoe.on();
-    }
-    else {*/
-      notify(undefined, false);
-   // }
-    // history
-    if (prefs.save) {
-      for (const e of prefs.history.reverse()) {
-        tools.append(e, false);
-      }
-    }
-    //
-    listen();
-  });
-
-  chrome.runtime.sendMessage({
-    method: 'me'
-  }, tabId => {
-    // install network
-    if (chrome.declarativeNetRequest && /Firefox/.test(navigator.userAgent) === false) {
-      if (tabId) {
-        chrome.declarativeNetRequest.updateSessionRules({
-          removeRuleIds: [tabId],
-          addRules: [{
-            'id': tabId,
-            'priority': 1,
-            'action': {
-              'type': 'modifyHeaders',
-              'requestHeaders': [{
-                'operation': 'remove',
-                'header': 'origin'
-              }],
-              'responseHeaders': [{
-                'operation': 'set',
-                'header': 'Access-Control-Allow-Origin',
-                'value': '*'
-              }]
-            },
-            'condition': {
-              'resourceTypes': ['image'],
-              'tabIds': [tabId]
-            }
-          }]
-        }, next);
-      }
-      else {
-        next();
-      }
-    }
-    else {
-      next();
-    }
-  });
+// Add detection event listener to QRCode instance
+qrcode.on('detect', e => {
+  const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
+  resultDisplayArea.textContent = resultText;
+  // Additional code to handle the detection result and display the QR code data
 });
 
-// prefs
-/*document.getElementById('auto-start').addEventListener('change', e => {
-  chrome.storage.local.set({
-    'auto-start': e.target.checked
-  });
-  tools.vidoe[e.target.checked ? 'on' : 'off']();
-});*/
-// video
-/*video.addEventListener('play', () => {
-  document.getElementById('display').dataset.mode = 'video';
-  document.getElementById('toggle').textContent = 'Stop';
-});
-video.addEventListener('suspend', () => {
-  document.getElementById('display').dataset.mode = 'image';
-  document.getElementById('toggle').textContent = 'Start';
-  notify(undefined, false);
-});*/
-// toggle
-/*document.getElementById('toggle').addEventListener('click', () => {
-  if (tools.stream && tools.stream.active) {
-    tools.vidoe.off();
-  }
-  else {
-    tools.vidoe.on();
-  }
-});*/
-// clean
-document.getElementById('clean').addEventListener('click', () => {
-  if (window.confirm('Delete the entire history?')) {
-    chrome.storage.local.remove('history', () => {
-      history.textContent = '';
+// Event listener for the 'Scan' button
+scanButton.addEventListener('click', () => {
+    chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+    if (chrome.runtime.lastError) {
+    console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
+    resultDisplayArea.textContent = 'Error capturing the tab.';
+    return;
+    }
+    processImageForQRCode(dataUrl);
+    displayImageAndResult(dataUrl, 'Scanning...');
     });
-  }
-});
-
-document.getElementById('history').onchange = () => {
-  const b = Boolean(document.querySelector('#history input:checked'));
-
-  document.getElementById('copy').disabled = !b;
-  document.getElementById('delete').disabled = !b;
-};
-
-
-document.getElementById('copy').addEventListener('click', e => {
-  const content = [...document.querySelectorAll('#history input:checked')]
-    .map(e => e.closest('label').data)
-    .join('\n\n');
-
-  navigator.clipboard.writeText(content).then(() => {
-    e.target.value = 'Done!';
-    setTimeout(() => e.target.value = 'Copy', 750);
-  });
-});
-
-document.getElementById('delete').addEventListener('click', () => {
-  const ds = [...document.querySelectorAll('#history input:checked')]
-    .map(e => {
-      const div = e.closest('label');
-      const content = div.data;
-      div.remove();
-
-      return content;
     });
-
-  chrome.storage.local.get({
-    history: []
-  }, prefs => {
-    prefs.history = prefs.history.filter(o => ds.includes(o.data) === false);
-    chrome.storage.local.set(prefs);
-  });
-});
-
-// Camera selector
-/*chrome.storage.local.get({
-  camera: 0
-}, prefs => {
-  navigator.mediaDevices.enumerateDevices().then(devices => {
-    const videoinputs = devices.filter(d => d.kind === 'videoinput');
-
-    const parent = document.getElementById('devices');
-    for (const device of videoinputs) {
-      const option = document.createElement('option');
-      option.value = device.deviceId;
-      option.textContent = device.label || `Camera ${parent.length + 1}`;
-      parent.appendChild(option);
+    
+    // Event listener for the 'Local' button to trigger the hidden file input
+    localButton.addEventListener('click', () => {
+    imageInput.click(); // Simulate a click on the hidden file input
+    });
+    
+    // Event listener for file input change to handle local image file selection
+    imageInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+    console.error('No file selected.');
+    return;
     }
-    parent.selectedIndex = prefs.camera;
-  }).catch(e => console.warn(e));
-});
-document.getElementById('devices').addEventListener('change', e => chrome.storage.local.set({
-  camera: e.target.selectedIndex
-}, () => {
-  tools.vidoe.off();
-  tools.vidoe.on();
-}));*/
-
-// link opening
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('link') && e.isTrusted) {
-    e.preventDefault();
-    chrome.storage.local.get({
-      'open-links-windows': false
-    }, prefs => {
-      if (prefs['open-links-windows']) {
-        chrome.windows.create({
-          url: e.target.href
-        });
-      }
-      else {
-        e.target.click();
-      }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    processImageForQRCode(dataUrl);
+    displayImageAndResult(dataUrl, 'Scanning...');
+    };
+    reader.readAsDataURL(file);
     });
-  }
-}, true);
+    
+    // Register event listener for QRCode detection
+    qrcode.on('detect', e => {
+    const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
+    resultDisplayArea.textContent = resultText;
+    });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+    // Initialize any additional listeners or startup procedures here
+    });
