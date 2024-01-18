@@ -69,7 +69,7 @@ const processImageForQRCode = (dataUrl) => {
 qrcode.on('detect', e => {
   // Clear the timeout when a QR code is detected
   clearTimeout(detectionTimeout);
-  
+
   const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
   resultDisplayArea.textContent = resultText;
   
@@ -80,7 +80,7 @@ qrcode.on('detect', e => {
     canvas.width = imageDisplayArea.offsetWidth;
     canvas.height = imageDisplayArea.offsetHeight;
     ctx.drawImage(imageDisplayArea.firstChild, 0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = 'rgba(255, 0, 0, 0.7)'; // Red color with 70% opacity
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)'; // Red color with 70% opacity
     ctx.lineWidth = 5;
     ctx.strokeRect(e.bounds.x, e.bounds.y, e.bounds.width, e.bounds.height);
     imageDisplayArea.innerHTML = '';
