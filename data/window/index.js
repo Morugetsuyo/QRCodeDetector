@@ -134,12 +134,6 @@ localButton.addEventListener('click', () => {
     reader.readAsDataURL(file);
     });
     
-    // Register event listener for QRCode detection
-    qrcode.on('detect', e => {
-    const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
-    resultDisplayArea.textContent = resultText;
-    });
-    
     document.addEventListener('DOMContentLoaded', () => {
     // Initialize any additional listeners or startup procedures here
     });
