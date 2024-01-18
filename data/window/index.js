@@ -67,20 +67,31 @@ const processImageForQRCode = (dataUrl) => {
 
 // Add detection event listener to QRCode instance
 qrcode.on('detect', e => {
-  // Clear the timeout when a QR code is detected
   clearTimeout(detectionTimeout);
-
   const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
   resultDisplayArea.textContent = resultText;
   
   if (e.data) {
-    // Draw red grid around the QR code
+    // Calculate scale factors
+    const scaleX = imageDisplayArea.offsetWidth / img.naturalWidth;
+    const scaleY = imageDisplayArea.offsetHeight / img.naturalHeight;
+
+    // Scale the bound of the detected QR code
+    const scaleBounds = {
+      x: e.bounds.x * scaleX,
+      y: e.bounds.y * scaleY,
+      width: e.bounds.width * scaleX,
+      height: e.bounds.height * scaleY,
+    };
+
+
+    // Draw red grid around the QR code on the scaled image
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = imageDisplayArea.offsetWidth;
     canvas.height = imageDisplayArea.offsetHeight;
     ctx.drawImage(imageDisplayArea.firstChild, 0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)'; // Red color with 70% opacity
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)'; // Red color with 20% opacity
     ctx.lineWidth = 5;
     ctx.strokeRect(e.bounds.x, e.bounds.y, e.bounds.width, e.bounds.height);
     imageDisplayArea.innerHTML = '';
