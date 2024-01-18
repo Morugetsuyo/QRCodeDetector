@@ -13,6 +13,8 @@ const displayImageAndResult = (dataUrl, resultText) => {
   // Display the image
   const img = document.createElement('img');
   img.src = dataUrl;
+  img.style.maxWidth = '100%'; // Set max width to 100% of the parent
+  img.style.maxHeight = '100%'; // Set max height to 100% of the parent
   imageDisplayArea.innerHTML = ''; // Clear the display area first
   imageDisplayArea.appendChild(img);
 
@@ -57,7 +59,20 @@ const processImageForQRCode = (dataUrl) => {
 qrcode.on('detect', e => {
   const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
   resultDisplayArea.textContent = resultText;
-  // Additional code to handle the detection result and display the QR code data
+  
+  if (e.data) {
+    // Draw red grid around the QR code
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = imageDisplayArea.offsetWidth;
+    canvas.height = imageDisplayArea.offsetHeight;
+    ctx.drawImage(imageDisplayArea.firstChild, 0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.7)'; // Red color with 70% opacity
+    ctx.lineWidth = 5;
+    ctx.strokeRect(e.bounds.x, e.bounds.y, e.bounds.width, e.bounds.height);
+    imageDisplayArea.innerHTML = '';
+    imageDisplayArea.appendChild(canvas);
+  }
 });
 
 // Event listener for the 'Scan' button
