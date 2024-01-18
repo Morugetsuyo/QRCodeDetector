@@ -7,6 +7,7 @@ const localButton = document.getElementById('local-btn');
 const imageInput = document.getElementById('image-input');
 const imageDisplayArea = document.getElementById('image-display-area');
 const resultDisplayArea = document.getElementById('result-display-area');
+const resetButton = document.getElementById('reset-btn');
 
 // Helper function to display image and results
 const displayImageAndResult = (dataUrl, resultText) => {
@@ -88,8 +89,8 @@ scanButton.addEventListener('click', () => {
     });
     });
     
-    // Event listener for the 'Local' button to trigger the hidden file input
-    localButton.addEventListener('click', () => {
+// Event listener for the 'Local' button to trigger the hidden file input
+localButton.addEventListener('click', () => {
     imageInput.click(); // Simulate a click on the hidden file input
     });
     
@@ -119,3 +120,11 @@ scanButton.addEventListener('click', () => {
     document.addEventListener('DOMContentLoaded', () => {
     // Initialize any additional listeners or startup procedures here
     });
+
+// Event listener for the 'Reset' button
+resetButton.addEventListener('click', () => {
+  // Claer image and result display areas
+  imageDisplayArea.innerHTML = 'Image will be displayed here';
+  resultDisplayArea.textContent = 'Result will be displayed here';
+  // Reset any additional state or variables if needed
+});
