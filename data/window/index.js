@@ -27,6 +27,8 @@ const displayImageAndResult = (dataUrl, resultText) => {
 const processImageForQRCode = (dataUrl) => {
   const img = new Image();
   img.crossOrigin = 'anonymous'; // Handle cross-origin images
+  let detectionTimeout;
+  
   img.onload = async () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -45,10 +47,17 @@ const processImageForQRCode = (dataUrl) => {
     try {
       await qrcode.ready();
       qrcode.detect(canvas, canvas.width, canvas.height);
+
+      // Set a timeout for QR code detection
+      detectionTimeout = setTimeout(() => {
+        resultDisplayArea.textContent = 'No QR Code';
+      }, 3000); // 3 seconds timeout
+
     } catch (e) {
       console.error('QR Code detection error:', e);
     }
   };
+  
   img.onerror = (e) => {
     console.error('Image load error:', e);
     // Handle image loading errors here
@@ -58,6 +67,9 @@ const processImageForQRCode = (dataUrl) => {
 
 // Add detection event listener to QRCode instance
 qrcode.on('detect', e => {
+  // Clear the timeout when a QR code is detected
+  clearTimeout(detectionTimeout);
+  
   const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
   resultDisplayArea.textContent = resultText;
   
