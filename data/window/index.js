@@ -93,7 +93,7 @@ qrcode.on('detect', e => {
     ctx.drawImage(imageDisplayArea.firstChild, 0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)'; // Red color with 20% opacity
     ctx.lineWidth = 5;
-    ctx.strokeRect(e.bounds.x, e.bounds.y, e.bounds.width, e.bounds.height);
+    ctx.strokeRect(scaleBounds.x, scaleBounds.y, scaleBounds.width, scaleBounds.height);
     imageDisplayArea.innerHTML = '';
     imageDisplayArea.appendChild(canvas);
   }
