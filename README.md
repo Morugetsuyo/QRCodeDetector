@@ -20,3 +20,4 @@ Objectives:
 1. Process image and highlight the detected area
 2. If there's highlighted area(== QR Code is detected), display highlighted inside the '
 3. Add function to capture the image inside the 'image-display-area'
+4. Enhance the detection abilities 
