@@ -189,25 +189,43 @@ class QRCode extends WasmQRCode {
       });
     }
   }
-  detect(source, width, height) {
-    if (this.barcodeDetector) {
-      const {ctx} = this;
-      const image = ctx.getImageData(0, 0, width, height);
-      // use native
-      this.barcodeDetector.detect(image).then(barcodes => {
-        for (const barcode of barcodes) {
+    detect(source, width, height) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        let detectionResults = [];
+        const processDetection = (barcode) => {
           this.emit('detect', {
-            origin: 'native',
-            symbol: barcode.format.toUpperCase().replace('_', '-'),
-            data: barcode.rawValue,
-            polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
+            origin: barcode.origin,
+            symbol: barcode.symbol,
+            data: barcode.data,
+            polygon: barcode.polygon
+          });
+        };
+        
+        if (this.barcodeDetector) {
+          const {ctx} = this;
+          const image = ctx.getImageData(0, 0, width, height);
+          // use native
+          this.barcodeDetector.detect(image).then(barcodes => {
+            barcodes.forEach(barcode => {
+              detectionResults.push({
+                origin: 'native',
+                symbol: barcode.format.toUpperCase().replace('_', '-'),
+                data: barcode.rawValue,
+                polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
+              });
+            });
+            if (detectionResults.length > 0) {
+              processDetection(detectionResults[0]);  
+              return;
+            }
           });
         }
-      });
+      }
+      try {
+        super.detect(source, width, height);
+      }
+      catch (e) {
+        console.error('Error in QR Code detection:', e);
+      }
     }
-    try {
-      super.detect(source, width, height);
-    }
-    catch (e) {}
   }
-}
