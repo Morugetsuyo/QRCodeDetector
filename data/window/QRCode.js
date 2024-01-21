@@ -189,43 +189,45 @@ class QRCode extends WasmQRCode {
       });
     }
   }
-    detect(source, width, height) {
-      for (let attempt = 0; attempt < 3; attempt++) {
-        let detectionResults = [];
-        const processDetection = (barcode) => {
-          this.emit('detect', {
-            origin: barcode.origin,
-            symbol: barcode.symbol,
-            data: barcode.data,
-            polygon: barcode.polygon
-          });
-        };
-        
-        if (this.barcodeDetector) {
-          const {ctx} = this;
-          const image = ctx.getImageData(0, 0, width, height);
-          // use native
-          this.barcodeDetector.detect(image).then(barcodes => {
-            barcodes.forEach(barcode => {
-              detectionResults.push({
-                origin: 'native',
-                symbol: barcode.format.toUpperCase().replace('_', '-'),
-                data: barcode.rawValue,
-                polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
-              });
-            });
-            if (detectionResults.length > 0) {
-              processDetection(detectionResults[0]);  
-              return;
-            }
-          });
+
+  async detect(source, width, height) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const {ctx} = this;
+      const image = ctx.getImageData(0, 0, width, height);
+
+      const nativeDetection = this.barcodeDetector ? this.nativeDetect(image) : Promise.resolve();
+
+      const wasmDetection = new Promise((resolve, reject) => {
+        try {
+          super.detect(source, width, height);
+          // Assuming some mechanism to check if detection was successful
+          resolve();
+        } catch (e) {
+          reject(e);
         }
-      }
+      });
+
       try {
-        super.detect(source, width, height);
-      }
-      catch (e) {
+        await Promise.race([nativeDetection, wasmDetection]);
+        // If either method succeeds, break the loop
+        break;
+      } catch (e) {
         console.error('Error in QR Code detection:', e);
+        // If both methods fail, continue to the next attempt
       }
     }
   }
+
+  async nativeDetect(image) {
+    const barcodes = await this.barcodeDetector.detect(image);
+    if (barcodes.length > 0) {
+      const barcode = barcodes[0];  // Assuming processing the first detected barcode
+      this.emit('detect', {
+        origin: 'native',
+        symbol: barcode.format.toUpperCase().replace('_', '-'),
+        data: barcode.rawValue,
+        polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
+      });
+    }
+  }
+}
