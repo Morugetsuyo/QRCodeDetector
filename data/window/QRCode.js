@@ -221,12 +221,15 @@ class QRCode extends WasmQRCode {
   async nativeDetect(image) {
     const barcodes = await this.barcodeDetector.detect(image);
     if (barcodes.length > 0) {
-      const barcode = barcodes[0];  // Assuming processing the first detected barcode
+      // Randomly select one of the detected barcodes
+      const selectedBarcode = barcodes[Math.floor(Math.random() * barcodes.length)];
+      //const barcode = barcodes[0];  // Assuming processing the first detected barcode
+      // Emitting the detection event for the selected QR code
       this.emit('detect', {
         origin: 'native',
-        symbol: barcode.format.toUpperCase().replace('_', '-'),
-        data: barcode.rawValue,
-        polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
+        symbol: selectedBarcode.format.toUpperCase().replace('_', '-'),
+        data: selectedBarcode.rawValue,
+        polygon: selectedBarcode.cornerPoints.map(o => [o.x, o.y]).flat()
       });
     }
   }
