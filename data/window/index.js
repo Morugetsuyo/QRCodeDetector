@@ -127,6 +127,34 @@ function centerQRCodeInDisplayArea() {
   overlayCanvas.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
 }
 
+function resizeAndTrimImageToFitQRCode() {
+  if (!e.polygon || e.polygon.length === 0) {
+    console.error('No QR Code polygon data available for resizing.')
+    return;
+  }
+
+  // Calculate the bounding box of the QR Code polygon
+  let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
+  e.polygon.forEach(point => {
+    minX = Math.min(minX, point.x);
+    minY = Math.min(minY, point.y);
+    maxX = Math.max(maxX, point.x);
+    maxY = Math.max(maxY, point.y);
+  });
+
+  const qrWidth = maxX - minX;
+  const qrHeight = maxY - minY;
+
+  // Determine the scaling factor required to fit the QR Code polygon within the image-display-area
+  const scaleX = imageDisplayArea.clientWidth / qrWidth;
+  const scaleY = imageDisplayArea.clientHeight / qrHeight;
+  const scale = Math.min(scaleX, scaleY);
+
+  overlayCanvas.width = img.width * scale;
+  overlayCanvas.height = img.height * scale;
+  overlayCanvas.style.transform = `scale(${scale})`;
+}
+
 // Event listener for the 'Scan' button
 scanButton.addEventListener('click', () => {
     chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
