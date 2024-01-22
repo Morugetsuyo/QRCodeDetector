@@ -67,36 +67,32 @@ const processImageForQRCode = (dataUrl) => {
 
 // Add detection event listener to QRCode instance
 qrcode.on('detect', e => {
-  //clearTimeout(detectionTimeout);
   const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
   resultDisplayArea.textContent = resultText;
   
-  //if (e.data) {
-    // Calculate scale factors
-    //const scaleX = imageDisplayArea.offsetWidth / img.naturalWidth;
-    //const scaleY = imageDisplayArea.offsetHeight / img.naturalHeight;
+  if (e.data && e.polygon) { // If QR code detected and polygon is available
+    // Draw overlay on the detecteed QR code area
+    const canvas = document.createElement('canvas'); // Create a canvas element
+    const ctx = canvas.getContext('2d'); // Get the canvas context (drawing surface)
+    canvas.width = img.naturalWidth; // Set canvas width to image width
+    canvas.height = img.naturalHeight; // Set canvas height to image height
 
-    // Scale the bound of the detected QR code
-    //const scaleBounds = {
-      //x: e.bounds.x * scaleX,
-      //y: e.bounds.y * scaleY,
-      //width: e.bounds.width * scaleX,
-      //height: e.bounds.height * scaleY,
-    //};
+    // Draw the original image onto the canvas
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
+    // Draw a red semi-transparent polygon over the QR code area
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.2)'; // Red, 20% opacity
+    ctx.moveTo(e.polygon[0].x, e.polygon[0].y); // Move to the first vertex
+    for (let i = 1; i < e.polygon.length; i++) { // Draw lines to the other vertices
+      ctx.lineTo(e.polygon[i].x, e.polygon[i].y); // Draw line
+    }                 
+    ctx.closePath(); // Close the path
+    ctx.fill(); // Fill the polygon
 
-    // Draw red grid around the QR code on the scaled image
-    //const canvas = document.createElement('canvas');
-    //const ctx = canvas.getContext('2d');
-    //canvas.width = imageDisplayArea.offsetWidth;
-    //canvas.height = imageDisplayArea.offsetHeight;
-    //ctx.drawImage(imageDisplayArea.firstChild, 0, 0, canvas.width, canvas.height);
-    //ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)'; // Red color with 20% opacity
-    //ctx.lineWidth = 5;
-    //ctx.strokeRect(scaleBounds.x, scaleBounds.y, scaleBounds.width, scaleBounds.height);
-    //imageDisplayArea.innerHTML = '';
-    //imageDisplayArea.appendChild(canvas);
-  //}
+    // Replace the original image with the canvas
+    imageDisplayArea.innerHTML = ''; // Clear the display area first
+    imageDisplayArea.appendChild(canvas); // Display the canvas instead of the image
+  }
 });
 
 // Event listener for the 'Scan' button
