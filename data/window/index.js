@@ -8,14 +8,12 @@ const imageInput = document.getElementById('image-input');
 const imageDisplayArea = document.getElementById('image-display-area');
 const resultDisplayArea = document.getElementById('result-display-area');
 const resetButton = document.getElementById('reset-btn');
+let img; // Global variable to hold the image
 
 // Helper function to display image and results
 const displayImageAndResult = (dataUrl, resultText) => {
-  // Display the image
-  const img = document.createElement('img');
+  img = new Image(); // Initialize the global image variable
   img.src = dataUrl;
-  //img.style.maxWidth = '100%'; // Set max width to 100% of the parent
-  //img.style.maxHeight = '100%'; // Set max height to 100% of the parent
   imageDisplayArea.innerHTML = ''; // Clear the display area first
   imageDisplayArea.appendChild(img);
 
@@ -25,9 +23,13 @@ const displayImageAndResult = (dataUrl, resultText) => {
 
 // Function to process the image for QR code detection
 const processImageForQRCode = (dataUrl) => {
-  const img = new Image();
+  // Ensure the img variable is initialized
+  if (!img) {
+    console.error('Image variable not initialized.');
+    return;
+  }
+
   img.crossOrigin = 'anonymous'; // Handle cross-origin images
-  //let detectionTimeout;
   
   img.onload = async () => {
     const canvas = document.createElement('canvas');
@@ -35,24 +37,14 @@ const processImageForQRCode = (dataUrl) => {
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
 
-    // Fill the canvas with a white background to handle images with transparency
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw the image onto the canvas
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    // Optionally, apply preprocessing to the canvas here, if need for better QR code detection
+    // Fill the canvas with a white background
+    ctx.fillStyle = '#fff'; // White
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill the entire canvas
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw the image onto the canvas
     
     try {
       await qrcode.ready();
       qrcode.detect(canvas, canvas.width, canvas.height);
-
-      // Set a timeout for QR code detection
-      detectionTimeout = setTimeout(() => {
-        resultDisplayArea.textContent = 'No QR Code';
-      }, 10000); // 10 seconds timeout
-
     } catch (e) {
       console.error('QR Code detection error:', e);
     }
@@ -60,7 +52,6 @@ const processImageForQRCode = (dataUrl) => {
   
   img.onerror = (e) => {
     console.error('Image load error:', e);
-    // Handle image loading errors here
   };
   img.src = dataUrl;
 };
@@ -70,41 +61,40 @@ qrcode.on('detect', e => {
   const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
   resultDisplayArea.textContent = resultText;
   
-  if (e.data && e.polygon) { // If QR code detected and polygon is available
-    // Draw overlay on the detecteed QR code area
-    const canvas = document.createElement('canvas'); // Create a canvas element
-    const ctx = canvas.getContext('2d'); // Get the canvas context (drawing surface)
-    canvas.width = img.naturalWidth; // Set canvas width to image width
-    canvas.height = img.naturalHeight; // Set canvas height to image height
+  if (e.data && e.polygon && img) { // If QR code detected and image loaded
+    const overlayCanvas = document.createElement('canvas'); // Create a canvas for the overlay
+    const overlayCtx = overlayCanvas.getContext('2d'); // Get the context of the overlay canvas
+    overlayCanvas.width = img.width; // Set canvas width to image width
+    overlayCanvas.height = img.height; // Set canvas height to image height
 
-    // Draw the original image onto the canvas
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    // Draw a red semi-transparent polygon over the QR code area
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.2)'; // Red, 20% opacity
-    ctx.moveTo(e.polygon[0].x, e.polygon[0].y); // Move to the first vertex
-    for (let i = 1; i < e.polygon.length; i++) { // Draw lines to the other vertices
-      ctx.lineTo(e.polygon[i].x, e.polygon[i].y); // Draw line
-    }                 
-    ctx.closePath(); // Close the path
-    ctx.fill(); // Fill the polygon
+    overlayCtx.drawImage(img, 0, 0); // Draw the image onto the overlay canvas
+    overlayCtx.fillStyle = 'rgba(255, 0, 0, 0.2)'; // Red, 20% opacity
+    overlayCtx.beginPath(); // Begin a new path
+    overlayCtx.moveTo(e.polygon[0].x, e.polygon[0].y); // Move to the first vertex
+    e.polygon.forEach((point, index) => {
+      if (index > 0) {
+        overlayCtx.lineTo(point.x, point.y); // Draw lines to the other vertices
+      }
+    });                 
+    overlayCtx.closePath(); // Close the path
+    overlayCtx.fill(); // Fill the path
 
     // Replace the original image with the canvas
     imageDisplayArea.innerHTML = ''; // Clear the display area first
-    imageDisplayArea.appendChild(canvas); // Display the canvas instead of the image
+    imageDisplayArea.appendChild(overlayCanvas); // Display the overlay canvas
   }
 });
 
 // Event listener for the 'Scan' button
 scanButton.addEventListener('click', () => {
     chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
-    if (chrome.runtime.lastError) {
-    console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
-    resultDisplayArea.textContent = 'Error capturing the tab.';
-    return;
+      if (chrome.runtime.lastError) {
+        console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
+        resultDisplayArea.textContent = 'Error capturing the tab.';
+        return;
     }
-    processImageForQRCode(dataUrl);
-    displayImageAndResult(dataUrl, 'Scanning...');
+    displayImageAndResult(dataUrl, 'Scanning...'); // Initilaize img first
+    processImageForQRCode(dataUrl); // Then procesqs the image for QR code detection
     });
     });
     
@@ -115,19 +105,19 @@ localButton.addEventListener('click', () => {
     
     // Event listener for file input change to handle local image file selection
     imageInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (!file) {
-    console.error('No file selected.');
-    return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-    const dataUrl = e.target.result;
-    processImageForQRCode(dataUrl);
-    displayImageAndResult(dataUrl, 'Scanning...');
-    };
-    reader.readAsDataURL(file);
+      const file = event.target.files[0];
+      if (!file) {
+        console.error('No file selected.');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        displayImageAndResult(dataUrl, 'Scanning...');
+        processImageForQRCode(dataUrl);
+      };
+      reader.readAsDataURL(file);
     });
     
     document.addEventListener('DOMContentLoaded', () => {
