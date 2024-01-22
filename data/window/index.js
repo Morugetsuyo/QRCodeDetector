@@ -62,8 +62,21 @@ qrcode.on('detect', e => {
   resultDisplayArea.textContent = resultText;
   
   if (e.data && e.polygon && img) { // If QR code detected and image loaded
+    console.log('QR Code detected:', e.data);
+
+    // Debugging: Log image dimentions and polygon points
+    console.log('Image dimentions:', img.width, img.height);
+    console.log('Polygon points:', e.polygon);  
+
     const overlayCanvas = document.createElement('canvas'); // Create a canvas for the overlay
     const overlayCtx = overlayCanvas.getContext('2d'); // Get the context of the overlay canvas
+
+    // Ensure the overlay canvas is positioned over the image
+    overlayCanvas.style.position = 'absolute';  
+    overlayCanvas.style.top = '0';
+    overlayCanvas.style.left = '0';
+    overlayCanvas.style.zIndex = '1'; // Ensure the overlay is on top of the image
+
     overlayCanvas.width = img.width; // Set canvas width to image width
     overlayCanvas.height = img.height; // Set canvas height to image height
 
@@ -79,11 +92,40 @@ qrcode.on('detect', e => {
     overlayCtx.closePath(); // Close the path
     overlayCtx.fill(); // Fill the path
 
+    // Debugging: Log overlay canvas dimentions
+    console.log('Overlay canvas dimentions:', overlayCanvas.width, overlayCanvas.height);
+
     // Replace the original image with the canvas
     imageDisplayArea.innerHTML = ''; // Clear the display area first
     imageDisplayArea.appendChild(overlayCanvas); // Display the overlay canvas
   }
 });
+
+function centerQRCodeInDisplayArea() {
+  if (!e.polygon || e.polygon.length === 0) {
+    console.error('No QR Code polygon data available for centering.')
+    return;
+  }
+
+  // Calculate the center of the QR Code polygon
+  let sumX = 0, sumY = 0;
+  e.polygon.forEach(point => {
+    sumX += point.x;
+    sumY += point.y;
+  });
+  const centerX = sumX / e.polygon.length;
+  const centerY = sumY / e.polygon.length;
+
+  // Calculate the center of the imageDisplayArea
+  const displayAreaCenterX = imageDisplayArea.clientWidth / 2;
+  const displayAreaCenterY = imageDisplayArea.clientHeight / 2;
+
+  // Determine the shift required to center the QR Code polygon
+  const shiftX = displayAreaCenterX - centerX;
+  const shiftY = displayAreaCenterY - centerY;
+
+  overlayCanvas.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+}
 
 // Event listener for the 'Scan' button
 scanButton.addEventListener('click', () => {
