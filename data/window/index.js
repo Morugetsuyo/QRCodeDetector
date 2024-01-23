@@ -14,8 +14,7 @@ let img; // Global variable to hold the image
 const displayImageAndResult = (dataUrl, resultText) => {
   img = new Image(); // Initialize the global image variable
   img.src = dataUrl;
-  imageDisplayArea.innerHTML = ''; // Clear the display area first
-  imageDisplayArea.appendChild(img);
+  imageDisplayArea.innerHTML = '<p>Analyzing...</p>'; // Display a loading message
 
   // Display the result
   resultDisplayArea.textContent = resultText;
