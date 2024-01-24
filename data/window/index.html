@@ -21,26 +21,24 @@
       justify-content: center;
       width: 100%;
     }
-    #image-display-area {
+    #image-display-area, #result-display-area {
+      position: relative;
       border: 1px solid #000;
       width: 280px;
       height: 140px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       margin: 5px;
       background-color: #f8f8f8;
-    }
-    #result-display-area {
-      border: 1px solid #000;
-      width: 280px;
-      height: 140px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      margin: 5px;
-      background-color: #f8f8f8;
+      justify-content: center;      
     }
+   .overlay-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+   }
     button {
       margin: 5px;
     }
@@ -53,10 +51,15 @@
       <button id="local-btn">Local</button>
     </div>
     <input type="file" id="image-input" accept="image/*" style="display: none;">
-    <div id="image-display-area">Image will be displayed here</div>
+    <div id="image-display-area">
+      <canvas id="qr-canvas"></canvas>
+      <div class="overlay-text">Image will be displayed here</div>
+    </div>
     <div id="text">Result</div>
-    <div id="result-display-area">Result will be displayed here</div>
-      <button id="reset-btn">Reset</button>
+    <div id="result-display-area">
+      <div class="overlay-text">Result will be displayed here</div>
+    </div>
+    <button id="reset-btn">Reset</button>
   </div>
   <script type="text/javascript" src="QRCode.js"></script>
   <script type="text/javascript" src="ZBar/zbar.js"></script>
