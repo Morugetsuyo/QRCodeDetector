@@ -191,9 +191,23 @@ class QRCode extends WasmQRCode {
   }
 
   async detect(source, width, height) {
+    let image;
     for (let attempt = 0; attempt < 3; attempt++) {
-      const {ctx} = this;
-      const image = ctx.getImageData(0, 0, width, height);
+      const { ctx } = this;
+      try {
+        console.log('Trying getImageData with:', width, height);
+        ctx.drawImage(source, 0, 0, width, height);
+        if (0 <= width && width <= ctx.canvas.width && 0 <= height && height <= ctx.canvas.height) {
+          image = ctx.getImageData(0, 0, width, height);
+        } else {
+          console.error('Invalid dimensions for getImageData:', width, height);
+          break;
+        }
+      }
+      catch (e) {
+        console.error('Error in QR Code detection:', e);
+        break;
+      }
 
       const nativeDetection = this.barcodeDetector ? this.nativeDetect(image) : Promise.resolve();
 
