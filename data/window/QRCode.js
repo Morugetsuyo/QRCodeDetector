@@ -189,95 +189,25 @@ class QRCode extends WasmQRCode {
       });
     }
   }
-<<<<<<< HEAD
-
-  async detect(source, width, height) {
-    let image;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const { ctx } = this;
-      try {
-        console.log('Trying getImageData with:', width, height);
-        ctx.drawImage(source, 0, 0, width, height);
-        if (0 <= width && width <= ctx.canvas.width && 0 <= height && height <= ctx.canvas.height) {
-          image = ctx.getImageData(0, 0, width, height);
-        } else {
-          console.error('Invalid dimensions for getImageData:', width, height);
-          break;
-        }
-      }
-      catch (e) {
-        console.error('Error in QR Code detection:', e);
-        break;
-      }
-
-      const nativeDetection = this.barcodeDetector ? this.nativeDetect(image) : Promise.resolve();
-
-      const wasmDetection = new Promise((resolve, reject) => {
-        try {
-          super.detect(source, width, height);
-          // Assuming some mechanism to check if detection was successful
-          resolve();
-        } catch (e) {
-          reject(e);
-=======
-    detect(source, width, height) {
-      for (let attempt = 0; attempt < 3; attempt++) {
-        let detectionResults = [];
-        const processDetection = (barcode) => {
+  detect(source, width, height) {
+    if (this.barcodeDetector) {
+      const {ctx} = this;
+      const image = ctx.getImageData(0, 0, width, height);
+      // use native
+      this.barcodeDetector.detect(image).then(barcodes => {
+        for (const barcode of barcodes) {
           this.emit('detect', {
-            origin: barcode.origin,
-            symbol: barcode.symbol,
-            data: barcode.data,
-            polygon: barcode.polygon
+            origin: 'native',
+            symbol: barcode.format.toUpperCase().replace('_', '-'),
+            data: barcode.rawValue,
+            polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
           });
-        };
-        
-        if (this.barcodeDetector) {
-          const {ctx} = this;
-          const image = ctx.getImageData(0, 0, width, height);
-          // use native
-          this.barcodeDetector.detect(image).then(barcodes => {
-            barcodes.forEach(barcode => {
-              detectionResults.push({
-                origin: 'native',
-                symbol: barcode.format.toUpperCase().replace('_', '-'),
-                data: barcode.rawValue,
-                polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
-              });
-            });
-            if (detectionResults.length > 0) {
-              processDetection(detectionResults[0]);  
-              return;
-            }
-          });
->>>>>>> parent of 33c597e (Running zbar.js and zbar.wasm 3times simultaneously and break if any of those process succeed in detecting the qrcode or failed.)
         }
-      }
-      try {
-        super.detect(source, width, height);
-      }
-      catch (e) {
-        console.error('Error in QR Code detection:', e);
-      }
-    }
-  }
-<<<<<<< HEAD
-
-  async nativeDetect(image) {
-    const barcodes = await this.barcodeDetector.detect(image);
-    if (barcodes.length > 0) {
-      // Randomly select one of the detected barcodes
-      const selectedBarcode = barcodes[Math.floor(Math.random() * barcodes.length)];
-      //const barcode = barcodes[0];  // Assuming processing the first detected barcode
-      // Emitting the detection event for the selected QR code
-      this.emit('detect', {
-        origin: 'native',
-        symbol: selectedBarcode.format.toUpperCase().replace('_', '-'),
-        data: selectedBarcode.rawValue,
-        polygon: selectedBarcode.cornerPoints.map(o => [o.x, o.y]).flat()
       });
     }
+    try {
+      super.detect(source, width, height);
+    }
+    catch (e) {}
   }
 }
-=======
->>>>>>> parent of 33c597e (Running zbar.js and zbar.wasm 3times simultaneously and break if any of those process succeed in detecting the qrcode or failed.)
