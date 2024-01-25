@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+
   // Grab the necessary DOM elements
   const qrcode = new QRCode();
   const scanButton = document.getElementById('scan-btn');
@@ -8,14 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultDisplayArea = document.getElementById('result-display-area');
   const resetButton = document.getElementById('reset-btn');
   const canvas = document.getElementById('qr-canvas');
-
-  if (!canvas) {
-    console.error('Canvas element not found!');
-    return;
-  }
-    console.log(canvas);
-    const ctx = canvas.getContext('2d');
-    let img; // Global variable to hold the image
+  let img; // Global variable to hold the image
 
     // Helper function to display image and results
     const displayImageAndResult = (dataUrl) => {
@@ -23,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
       img.src = dataUrl;
       imageDisplayArea.innerHTML = '<p>Analyzing...</p>';
       img.onload = () => {
+        imageDisplayArea.innerHTML = ''; // Clear the "Analyzing..." text
+        imageDisplayArea.appendChild(img);
         if (img.complete && img.naturalHeight !== 0) {
           canvas.width = Math.round(img.naturalWidth);
           canvas.height = Math.round(img.naturalHeight);
@@ -43,12 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
       
       img.crossOrigin = 'anonymous'; // Handle cross-origin images
       img.onload = async () => {
-        //const canvas = document.getElementById('qr-canvas');
-        //const ctx = canvas.getContext('2d');
+        const canvas = document.getElementById('qr-canvas');
+        const ctx = canvas.getContext('2d');
         canvas.width = Math.round(img.naturalWidth);
         canvas.height = Math.round(img.naturalHeight);
-        //ctx.fillStyle = '#fff'; // White
-        //ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill the entire canvas
+        ctx.fillStyle = '#fff'; // White
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill the entire canvas
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw the image onto the canvas
       
         try {
@@ -189,13 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Add detection event listener to QRCode instance
+    /*
     qrcode.on('detect', e => {
       const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code detected';
       resultDisplayArea.textContent = resultText;
       
       if (e.data && e.polygon && img) { // If QR code detected and image loaded
         console.log('QR Code detected:', e.data);
-        // Debugging: Log image dimentions and polygon points
         console.log('Image dimentions:', img.width, img.height);
         console.log('Polygon points:', e.polygon);  
         const overlayCanvas = document.createElement('canvas'); // Create a canvas for the overlay
@@ -291,3 +286,75 @@ function resizeAndTrimImageToFitQRCode() {
   overlayCanvas.height = img.height * scale;
   overlayCanvas.style.transform = `scale(${scale})`;
 }
+*/
+
+  qrcode.on('detect', e => {
+    const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code detected';
+    resultDisplayArea.textContent = resultText;
+
+    if (e.data && e.polygon && img) {
+      // Log for debugging
+      console.log('QR Code detected:', e.data);
+      console.log('Image dimensions:', img.width, img.height);
+      console.log('Polygon points:', e.polygon);
+
+      // Process QR code detection
+      processQRCodeDetection(e);
+    } else {
+      // No QR code detected, display image normally
+      displayImageNormally();
+    }
+  });
+
+  function processQRCodeDetection(e) {
+    const overlayCanvas = document.createElement('canvas');
+    const overlayCtx = overlayCanvas.getContext('2d');
+    overlayCanvas.width = img.width;
+    overlayCanvas.height = img.height;
+
+    // Draw the image onto the overlay canvas
+    overlayCtx.drawImage(img, 0, 0);
+    highlightQRCode(e, overlayCtx);
+    centerAndResizeQRCode(e, overlayCanvas);
+
+    // Replace the original image with the canvas
+    imageDisplayArea.innerHTML = '';
+    imageDisplayArea.appendChild(overlayCanvas);
+  }
+
+  function highlightQRCode(e, overlayCtx) {
+    // Draw the highlight on the QR code
+    overlayCtx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+    overlayCtx.beginPath();
+    overlayCtx.moveTo(e.polygon[0].x, e.polygon[0].y);
+    e.polygon.forEach((point, index) => {
+      if (index > 0) {
+        overlayCtx.lineTo(point.x, point.y);
+      }
+    });
+    overlayCtx.closePath();
+    overlayCtx.fill();
+  }
+
+  function centerAndResizeQRCode(e, overlayCanvas) {
+    // Center and resize QR code
+    const boundingBox = calculateBoundingBox(e.polygon);
+    const scale = calculateScale(boundingBox, imageDisplayArea);
+    const shift = calculateShift(boundingBox, scale, imageDisplayArea);
+
+    overlayCanvas.style.transform = `translate(${shift.x}px, ${shift.y}px) scale(${scale})`;
+  }
+
+  function displayImageNormally() {
+    imageDisplayArea.innerHTML = '';
+    imageDisplayArea.appendChild(img);
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '100%';
+  }
+
+  // Helper functions: calculateBoundingBox, calculateScale, calculateShift
+  // ... (Implement these functions based on the logic in centerQRCodeInDisplayArea and resizeAndTrimImageToFitQRCode)
+
+
+// Event listeners for buttons (Scan, Local, Reset)
+// ... (Keep the existing event listener code for buttons)
