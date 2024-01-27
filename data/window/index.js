@@ -11,11 +11,11 @@ const resetButton = document.getElementById('reset-btn');
 
 // Helper function to display image and results
 const displayImageAndResult = (dataUrl, resultText) => {
-  // Display the image
+  const imageArea = document.getElementById('image-display-area');
+  imageArea.innerHTML = ''; // Clear the image area first
   const img = document.createElement('img');
   img.src = dataUrl;
-  imageDisplayArea.innerHTML = ''; // Clear the display area first
-  imageDisplayArea.appendChild(img);
+  imageArea.appendChild(img);
 
   // Display the result
   resultDisplayArea.textContent = resultText;
