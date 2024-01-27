@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "version": "0.2.0a",
-  "name": "QR Code Reader",
-  "description": "QR Code Reader",
+  "version": "1.0.0",
+  "name": "QR Code Detector",
+  "description": "QR Code Detector",
   "permissions": [
     "storage",
     "contextMenus",

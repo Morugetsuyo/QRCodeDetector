@@ -10,11 +10,10 @@ File composition:
 7. zbar.wasm: ZBar web assembly file
 
 Issues:
-1. Captured image breaks the displaying area boundary.
-2. User can't see the detection field.
-3. Detection ability fall behind the expectation.
-4. No time limit for decoding process. 
-5. Problems when there are multiple QR Codes in an image
+1. User can't see the detection field.
+2. Detection ability fall behind the expectation.
+3. No time limit for decoding process. 
+4. Problems when there are multiple QR Codes in an image
 
 Objectives:
 1. Process image and highlight the detected area
