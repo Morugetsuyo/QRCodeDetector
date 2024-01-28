@@ -1,22 +1,34 @@
 # QRCodeDetector
-Completed Version 1.0.0 
-File composition:
-1. manifest.json
-2. background.js: extension service worker
-3. index.html: popup window
-4. index.js: capture active tab, loading image from the local, set image format
-5. QRCode.js: Decoding logic using zbar.js & zbar.wasm
-6. zbar.js: JavaScript version of ZBar package
-7. zbar.wasm: ZBar web assembly file
+Pilot Version 1.0.0 
+
+TCS_QR(ZBar_dev)
+│
+├── background.js
+├── manifest.json
+├── popup.png
+├── readme.md
+└── data
+    │
+    ├── icons.png
+    └── window
+        │
+        ├── index.html
+        ├── index.js
+        ├── QRCode.js
+        └── ZBar
+            ├── README.md
+            ├── zbar.js
+            └── zbar.wasm
+
 
 Issues:
-1. User can't see the detection field.
-2. Detection ability fall behind the expectation.
-3. No time limit for decoding process. 
-4. Problems when there are multiple QR Codes in an image
+1. User can't see the detected field.
+2. Problems when there are multiple QR Codes in an image.
+3. Loading errors.
+
 
 Objectives:
 1. Process image and highlight the detected area
-2. If there's highlighted area(== QR Code is detected), display highlighted inside the '
-3. Add function to capture the image inside the 'image-display-area'
-4. Enhance the detection abilities 
+2. Enhance the detection abilities. (add zxing package or modify the decoding logic)
+3. Field Test
+4. Testify the effectiveness of this program
