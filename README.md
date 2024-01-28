@@ -1,5 +1,5 @@
 # QRCodeDetector
-Pilot Version 1.0.0 
+Pilot Version 1.0.1 
 
 TCS_QR(ZBar_dev)
 │
@@ -24,8 +24,6 @@ TCS_QR(ZBar_dev)
 Issues:
 1. User can't see the detected field.
 2. Problems when there are multiple QR Codes in an image.
-3. Loading errors.
-
 
 Objectives:
 1. Process image and highlight the detected area
