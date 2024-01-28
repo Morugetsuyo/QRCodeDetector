@@ -46,10 +46,11 @@ const processImageForQRCode = (dataUrl) => {
       await qrcode.ready();
       qrcode.detect(canvas, canvas.width, canvas.height);
 
-      // Set a timeout for QR code detection
+      /* Set a timeout for QR code detection
       detectionTimeout = setTimeout(() => {
         resultDisplayArea.textContent = 'No QR Code';
       }, 5000); // 5 seconds timeout
+      */
 
     } catch (e) {
       console.error('QR Code detection error:', e);
@@ -114,5 +115,6 @@ resetButton.addEventListener('click', () => {
   // Claer image and result display areas
   imageDisplayArea.innerHTML = 'Image will be displayed here';
   resultDisplayArea.textContent = 'Result will be displayed here';
-  // Reset any additional state or variables if needed
+  // Reset the QR code detection flag
+  qrcode.isQRCodeDetected = false;
 });
