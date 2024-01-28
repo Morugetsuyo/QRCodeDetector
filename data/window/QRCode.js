@@ -82,6 +82,7 @@ class WasmQRCode {
       canvas
     });
     this.events = {};
+    this.isQRCodeDetected = false; // Initialize detection flag
   }
   ready() {
     if (this.inst) {
@@ -93,6 +94,8 @@ class WasmQRCode {
     });
   }
   detect(source, width, height) {
+    if (this.isQRCodeDetected) return; // Check if already detected
+    
     const {canvas, ctx} = this;
     Object.assign(canvas, {
       width,
@@ -121,6 +124,7 @@ class WasmQRCode {
     // read results
     const res = this.inst._Image_get_symbols(imagePtr);
     if (res !== 0) {
+      this.isQRCodeDetected = true; // Set flag on successful detection
       const set = new SymbolSetPtr(res, this.inst.HEAPU8.buffer);
       const decoder = new TextDecoder();
       let symbol = set.head;
@@ -190,12 +194,15 @@ class QRCode extends WasmQRCode {
     }
   }
   detect(source, width, height) {
+    if (this.isQRCodeDetected) return; // Check if already detected
+    
     if (this.barcodeDetector) {
       const {ctx} = this;
       const image = ctx.getImageData(0, 0, width, height);
       // use native
       this.barcodeDetector.detect(image).then(barcodes => {
         for (const barcode of barcodes) {
+          this.isQRCodeDetected = true; // Set flag on successful detection 
           this.emit('detect', {
             origin: 'native',
             symbol: barcode.format.toUpperCase().replace('_', '-'),
