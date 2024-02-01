@@ -146,10 +146,10 @@ class WasmQRCode {
   rect(e) {
     const xs = [
       Math.min(...e.polygon.filter((a, i) => i % 2 === 0)),
-      Math.max(...e.polygon.filter((a, i) => i % 2 === 0))
+      Math.max(...e.polygon.filter((a, i) => i % 2 === 0)) 
     ];
     const ys = [
-      Math.min(...e.polygon.filter((a, i) => i % 2 === 1)),
+      Math.min(...e.polygon.filter((a, i) => i % 2 === 1)), 
       Math.max(...e.polygon.filter((a, i) => i % 2 === 1))
     ];
     if (e.symbol.toUpperCase() === 'QR-CODE' || e.origin === 'native') {
