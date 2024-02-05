@@ -1,5 +1,5 @@
 # QRCodeDetector
-Pilot Version 1.0.1 
+Pilot Version 1.0.2 
 
 TCS_QR(ZBar_dev)
 │
@@ -30,3 +30,6 @@ Objectives:
 2. Enhance the detection abilities. (add zxing package or modify the decoding logic)
 3. Field Test
 4. Testify the effectiveness of this program
+
+Updates:
+1.0.2: Fix bugs on 'reset' logic

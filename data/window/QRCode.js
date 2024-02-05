@@ -143,6 +143,16 @@ class WasmQRCode {
     // destroy
     this.inst._Image_destory(imagePtr);
   }
+  resetDetection() {
+    this.isQRCodeDetected = false;
+    this.clean(this.canvas);
+  }
+
+  clean(canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  
   rect(e) {
     const xs = [
       Math.min(...e.polygon.filter((a, i) => i % 2 === 0)),

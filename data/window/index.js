@@ -116,5 +116,6 @@ resetButton.addEventListener('click', () => {
   imageDisplayArea.innerHTML = 'Image will be displayed here';
   resultDisplayArea.textContent = 'Result will be displayed here';
   // Reset the QR code detection flag
-  qrcode.isQRCodeDetected = false;
+  qrcode.resetDetection();
+  imageInput.value = '';
 });
