@@ -1,5 +1,5 @@
 # QRCodeDetector
-Pilot Version 1.0.2 
+Pilot Version 1.1.0 
 
 TCS_QR(ZBar_dev)
 │
@@ -33,3 +33,4 @@ Objectives:
 
 Updates:
 1.0.2: Fix bugs on 'reset' logic
+1.1.0: Fix bugs on 'display-area' and improve popup UI
