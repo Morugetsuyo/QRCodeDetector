@@ -46,12 +46,6 @@ const processImageForQRCode = (dataUrl) => {
       await qrcode.ready();
       qrcode.detect(canvas, canvas.width, canvas.height);
 
-      /* Set a timeout for QR code detection
-      detectionTimeout = setTimeout(() => {
-        resultDisplayArea.textContent = 'No QR Code';
-      }, 5000); // 5 seconds timeout
-      */
-
     } catch (e) {
       console.error('QR Code detection error:', e);
     }
@@ -65,9 +59,8 @@ const processImageForQRCode = (dataUrl) => {
 };
 
 // Add detection event listener to QRCode instance
-qrcode.on('detect', e => {
-  //clearTimeout(detectionTimeout);
-  const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
+qrcode.on('qrdetected', (detected) => {
+  const resultText = detected ? `QR Code Detected` : 'No QR Code Detected';
   resultDisplayArea.textContent = resultText;
 });
 
@@ -81,8 +74,8 @@ scanButton.addEventListener('click', () => {
     }
     processImageForQRCode(dataUrl);
     displayImageAndResult(dataUrl, 'Scanning...');
-    });
-    });
+  });
+});
     
 // Event listener for the 'Local' button to trigger the hidden file input
 localButton.addEventListener('click', () => {
