@@ -60,7 +60,6 @@ const processImageForQRCode = (dataUrl) => {
 
 // Add detection event listener to QRCode instance
 qrcode.on('detect', e => {
-  
   const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
   resultDisplayArea.textContent = resultText;
 });

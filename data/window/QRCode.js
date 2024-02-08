@@ -125,11 +125,21 @@ class WasmQRCode {
     const res = this.inst._Image_get_symbols(imagePtr);
     if (res !== 0) {
       this.isQRCodeDetected = true; // Set flag on successful detection
-      this.emit('qrdetected', true);
-    } else {
-      this.emit('qrdetected', false);
-    }
+      const set = new SymbolSetPtr(res, this.inst.HEAPU8.buffer);
+      const decoder = new TextDecoder();
+      let symbol = set.head;
 
+      while (symbol !== null) {
+        this.emit('detect', {
+          origin: 'wasm',
+          symbol: TYPES[symbol.type],
+          data: decoder.decode(symbol.data),
+          polygon: symbol.points.map(o => [o.x, o.y]).flat()
+        });
+
+        symbol = symbol.next;
+      }
+    }
     // destroy
     this.inst._Image_destory(imagePtr);
   }
