@@ -59,8 +59,9 @@ const processImageForQRCode = (dataUrl) => {
 };
 
 // Add detection event listener to QRCode instance
-qrcode.on('qrdetected', (detected) => {
-  const resultText = detected ? `QR Code Detected` : 'No QR Code Detected';
+qrcode.on('detect', e => {
+  
+  const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
   resultDisplayArea.textContent = resultText;
 });
 
@@ -74,8 +75,8 @@ scanButton.addEventListener('click', () => {
     }
     processImageForQRCode(dataUrl);
     displayImageAndResult(dataUrl, 'Scanning...');
-  });
-});
+    });
+    });
     
 // Event listener for the 'Local' button to trigger the hidden file input
 localButton.addEventListener('click', () => {
