@@ -197,34 +197,58 @@ class QRCode extends WasmQRCode {
 
     if (typeof BarcodeDetector !== 'undefined') {
       BarcodeDetector.getSupportedFormats().then(supportedFormats => {
-        if (supportedFormats.length) {
-          this.barcodeDetector = new BarcodeDetector({formats: supportedFormats});
+        if (supportedFormats.includes('qr_code')) {
+          this.barcodeDetector = new BarcodeDetector({formats: ['qr_ccode']});
         }
       });
     }
   }
+
   detect(source, width, height) {
-    if (this.isQRCodeDetected) return; // Check if already detected
+    return new Promise((resolve, reject) => {
+      let timeoutHandler = setTimeout(() => {
+        reject('Detection timeout - No QR Code');
+      }, 5000); // 5 seconds timeout
+      
+      if (this.isQRCodeDetected) {
+        clearTimeout(timeoutHandler);
+        reject('QR Code already detected');
+        return;
+      }
     
-    if (this.barcodeDetector) {
-      const {ctx} = this;
-      const image = ctx.getImageData(0, 0, width, height);
-      // use native
-      this.barcodeDetector.detect(image).then(barcodes => {
-        for (const barcode of barcodes) {
-          this.isQRCodeDetected = true; // Set flag on successful detection 
-          this.emit('detect', {
-            origin: 'native',
-            symbol: barcode.format.toUpperCase().replace('_', '-'),
-            data: barcode.rawValue,
-            polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
-          });
+      const detectionTasks = [];
+
+      if (this.barcodeDetector) {
+        const {ctx} = this;
+        const image = ctx.getImageData(0, 0, width, height);
+        detectionTasks.push(this.barcodeDetector.detect(image).then(barcodes => {
+          if (barcodes.length > 0) {
+            this.isQRCodeDetected = true;
+            clearTimeout(timeoutHandler);
+            resolve(barcodes.map(barcode => ({
+              origin: 'native',
+              symbol: barcode.format.toUpperCase().replace('_', '-'),
+              data: barcode.rawValue,
+              polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
+          })));
         }
-      });
+      }));
     }
+    
+    // Fallback to WASM-based detection
     try {
-      super.detect(source, width, height);
+      detectionTasks.push(new Promise((resolve, reject) => {
+        super.detect(source, width, height);
+        this.on('detect', data => {
+          this.isQRCodeDetected = true;
+          clearTimeout(timeoutHandler);
+          resolve(data);
+        });
+      }));
+    } catch (e) {
+      reject(e);
     }
-    catch (e) {}
-  }
-}
+    
+    Promise.race(this.detectionTasks).then(resolve).catch(reject);
+  });
+}}
