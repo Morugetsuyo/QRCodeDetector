@@ -198,7 +198,7 @@ class QRCode extends WasmQRCode {
     if (typeof BarcodeDetector !== 'undefined') {
       BarcodeDetector.getSupportedFormats().then(supportedFormats => {
         if (supportedFormats.includes('qr_code')) {
-          this.barcodeDetector = new BarcodeDetector({formats: ['qr_ccode']});
+          this.barcodeDetector = new BarcodeDetector({formats: ['qr_code']});
         }
       });
     }
