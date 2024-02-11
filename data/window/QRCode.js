@@ -197,12 +197,13 @@ class QRCode extends WasmQRCode {
 
     if (typeof BarcodeDetector !== 'undefined') {
       BarcodeDetector.getSupportedFormats().then(supportedFormats => {
-        if (supportedFormats.length) {
-          this.barcodeDetector = new BarcodeDetector({formats: supportedFormats});
+        if (supportedFormats.includes('qr_code')) {
+          this.barcodeDetector = new BarcodeDetector({formats: ['qr_code']});
         }
       });
     }
   }
+
   detect(source, width, height) {
     return new Promise((resolve, reject) => {
       if (this.isQRCodeDetected) {
@@ -244,7 +245,7 @@ class QRCode extends WasmQRCode {
         });
       }
     });
-  }
-  
+  } 
   // ... [other methods] ...
 }
+
