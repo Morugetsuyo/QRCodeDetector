@@ -34,28 +34,23 @@ const processImageForQRCode = async (dataUrl) => {
     canvas.height = img.naturalHeight;
 
     // Fill the canvas with a white background to handle images with transparency
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    // Optionally, apply preprocessing to the canvas here, if need for better QR code detection
-    
-    try {
-      await qrcode.ready();
-      const detectionResults = await qrcode.detect(canvas, canvas.width, canvas.height);
-      displayImageAndResult(dataUrl, detectionResults.length > 0 ? 'QR Code Detected: ${detectionResults[0].data' : 'No QR code');
-    } catch (error) {
-      console.error('QR Code detection error or timeout:', error);
-      displayImageAndResult(dataUrl, error.toString());
-      await qrcode.detect(canvas, canvas.width, canvas.height);
-    } catch (e) {
-      console.error('QR Code detection error or timeout:', e);
-      displayImageAndResult(dataUrl, e.toString());
-    }
-  };
+      // Optionally, apply preprocessing to the canvas here, if need for better QR code detection
+      
+      try {
+        await qrcode.ready();
+        const detectionResults = await qrcode.detect(canvas, canvas.width, canvas.height);
+        displayImageAndResult(dataUrl, detectionResults.length > 0 ? `QR Code Detected: ${detectionResults[0].data}` : 'No QR code');
+      } catch (error) {
+        console.error('QR Code detection error or timeout:', error);
+        displayImageAndResult(dataUrl, error.toString());
+      }
+    };
   img.onerror = (e) => {
     console.error('Image load error:', e);
-    displayImageAndResult(dataUrl, 'Image load error');
     displayImageAndResult(dataUrl, 'Image load error');
   };
   img.src = dataUrl;

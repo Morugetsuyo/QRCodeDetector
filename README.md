@@ -1,5 +1,5 @@
 # QRCodeDetector_TEST
-Pilot Version 1.1.2
+Pilot Version 1.1.4
 
 TCS_QR(ZBar_dev)
 │
@@ -24,6 +24,7 @@ TCS_QR(ZBar_dev)
 Issues:
 1. User can't see the detected field.
 2. Problems when there are multiple QR Codes in an image.
+3. Shows different decoding abilities based on the working platform (MacOS vs Windows)
 
 Objectives:
 1. Process image and highlight the detected area
@@ -34,3 +35,4 @@ Objectives:
 Updates:
 1.0.2: Fix bugs on 'reset' logic
 1.1.0: Fix bugs on 'display-area' and improve popup UI
+1.1.4: Fix bugs on decoding logic
