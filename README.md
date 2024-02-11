@@ -1,5 +1,5 @@
-# QRCodeDetector
-Pilot Version 1.1.0 
+# QRCodeDetector_TEST
+Pilot Version 1.1.1 
 
 TCS_QR(ZBar_dev)
 │

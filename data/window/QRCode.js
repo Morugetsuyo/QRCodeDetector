@@ -94,55 +94,55 @@ class WasmQRCode {
     });
   }
   detect(source, width, height) {
-    if (this.isQRCodeDetected) return; // Check if already detected
-    
-    const {canvas, ctx} = this;
-    Object.assign(canvas, {
-      width,
-      height
-    });
-    ctx.drawImage(source, 0, 0, width, height);
-    const dataBuf = ctx.getImageData(0, 0, width, height).data;
-    // write to WASM
-    const heap = this.inst.HEAPU8;
-    const data = new Uint8Array(dataBuf);
-    const len = width * height;
-    if (len * 4 !== data.byteLength) {
-      throw Error('dataBuf does not match width and height');
-    }
-    const buf = this.inst._malloc(len);
-    for (let i = 0; i < len; ++i) {
-      const r = data[i * 4];
-      const g = data[i * 4 + 1];
-      const b = data[i * 4 + 2];
-      heap[buf + i] = (r * 19595 + g * 38469 + b * 7472) >> 16;
-    }
-    const imagePtr = this.inst._Image_create(width, height, 0x30303859 /* Y800 */, buf, len, 1);
-    // scan
-    const count = this.inst._ImageScanner_scan(this.ptr, imagePtr);
-    console.info('count', count);
-    // read results
-    const res = this.inst._Image_get_symbols(imagePtr);
-    if (res !== 0) {
-      this.isQRCodeDetected = true; // Set flag on successful detection
-      const set = new SymbolSetPtr(res, this.inst.HEAPU8.buffer);
-      const decoder = new TextDecoder();
-      let symbol = set.head;
-
-      while (symbol !== null) {
-        this.emit('detect', {
-          origin: 'wasm',
-          symbol: TYPES[symbol.type],
-          data: decoder.decode(symbol.data),
-          polygon: symbol.points.map(o => [o.x, o.y]).flat()
-        });
-
-        symbol = symbol.next;
+    return new Promise((_resolve, _reject) => {
+      if (this.isQRCodeDetected) return; // Check if already detected
+      const {canvas, ctx} = this;
+      Object.assign(canvas, {
+        width, height
+      });
+      ctx.drawImage(source, 0, 0, width, height);
+      const dataBuf = ctx.getImageData(0, 0, width, height).data;
+      // write to WASM
+      const heap = this.inst.HEAPU8;
+      const data = new Uint8Array(dataBuf);
+      const len = width * height;
+      if (len * 4 !== data.byteLength) {
+        throw Error('dataBuf does not match width and height');
       }
-    }
-    // destroy
-    this.inst._Image_destory(imagePtr);
+      const buf = this.inst._malloc(len);
+      for (let i = 0; i < len; ++i) {
+        const r = data[i * 4];
+        const g = data[i * 4 + 1];
+        const b = data[i * 4 + 2];
+        heap[buf + i] = (r * 19595 + g * 38469 + b * 7472) >> 16;
+      }
+      const imagePtr = this.inst._Image_create(width, height, 0x30303859 /* Y800 */, buf, len, 1);
+      // scan
+      const count = this.inst._ImageScanner_scan(this.ptr, imagePtr);
+      console.info('count', count);
+      // read results
+      const res = this.inst._Image_get_symbols(imagePtr);
+      if (res !== 0) {
+        this.isQRCodeDetected = true; // Set flag on successful detection
+        const set = new SymbolSetPtr(res, this.inst.HEAPU8.buffer);
+        const decoder = new TextDecoder();
+        let symbol = set.head;
+        
+        while (symbol !== null) {
+          this.emit('detect', {
+            origin: 'wasm',
+            symbol: TYPES[symbol.type],
+            data: decoder.decode(symbol.data),
+            polygon: symbol.points.map(o => [o.x, o.y]).flat()
+          });
+          symbol = symbol.next;
+        }
+      }
+      // destroy
+      this.inst._Image_destory(imagePtr);
+    })
   }
+
   resetDetection() {
     this.isQRCodeDetected = false;
     this.clean(this.canvas);
@@ -204,27 +204,47 @@ class QRCode extends WasmQRCode {
     }
   }
   detect(source, width, height) {
-    if (this.isQRCodeDetected) return; // Check if already detected
-    
-    if (this.barcodeDetector) {
-      const {ctx} = this;
-      const image = ctx.getImageData(0, 0, width, height);
-      // use native
-      this.barcodeDetector.detect(image).then(barcodes => {
-        for (const barcode of barcodes) {
-          this.isQRCodeDetected = true; // Set flag on successful detection 
-          this.emit('detect', {
-            origin: 'native',
-            symbol: barcode.format.toUpperCase().replace('_', '-'),
-            data: barcode.rawValue,
-            polygon: barcode.cornerPoints.map(o => [o.x, o.y]).flat()
-          });
-        }
-      });
-    }
-    try {
-      super.detect(source, width, height);
-    }
-    catch (e) {}
+    return new Promise((resolve, reject) => {
+      if (this.isQRCodeDetected) {
+        return reject(new Error('QR Code already detected'));
+      }
+      // Set a timeout for QR code detection
+      const timeoutId = setTimeout(() => {
+        this.isQRCodeDetected = false; // Reset the detection flag
+        reject(new Error('Detection timeout - No QR Code'));
+      }, 5000);
+
+      // Try native BarcodeDetector detection
+      if (this.barcodeDetector) {
+        this.barcodeDetector.detect(source).then(barcodes => {
+          clearTimeout(timeoutId);
+          if (barcodes.length > 0) {
+            this.isQRCodeDetected = true; // Set the detection flag to true
+            resolve(barcodes.map(barcode => ({
+              origin: 'native',
+              symbol: barcode.format,
+              data: barcode.rawValue,
+              points: barcode.cornerPoints
+            })));
+          } else {
+            resolve([]); // Resolve with an empty array if no barcodes are found
+          }
+        }).catch(error => {
+          clearTimeout(timeoutId);
+          reject(error);
+        });
+      } else {
+        // Fallback to WASM-based detection
+        super.detect(source, width, height).then(result => {
+          clearTimeout(timeoutId);
+          resolve(result);
+        }).catch(error => {
+          clearTimeout(timeoutId);
+          reject(error);
+        });
+      }
+    });
   }
+  
+  // ... [other methods] ...
 }
