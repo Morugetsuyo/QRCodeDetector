@@ -32,18 +32,17 @@ const processImageForQRCode = async (dataUrl) => {
     const ctx = canvas.getContext('2d');
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
-
-    // Fill the canvas with a white background to handle images with transparency
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      // Optionally, apply preprocessing to the canvas here, if need for better QR code detection
-      
-      try {
-        await qrcode.ready();
-        const detectionResults = await qrcode.detect(canvas, canvas.width, canvas.height);
-        displayImageAndResult(dataUrl, detectionResults.length > 0 ? `QR Code Detected: ${detectionResults[0].data}` : 'No QR code');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    try {
+      await qrcode.ready();
+      const detectionResults = await qrcode.detect(canvas, canvas.width, canvas.height);
+      if (detectionResults.length > 0) {
+        displayImageAndResult(dataUrl, `QR Code Detected: ${detectionResults[0].data}`);
+      } else {
+        displayImageAndResult(dataUrl, 'No QR Code detected within 5 seconds');
+      }
       } catch (error) {
         console.error('QR Code detection error or timeout:', error);
         displayImageAndResult(dataUrl, error.toString());
