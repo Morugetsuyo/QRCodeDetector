@@ -37,4 +37,4 @@ Updates:
 1.0.2: Fix bugs on 'reset' logic
 1.1.0: Fix bugs on 'display-area' and improve popup UI
 1.1.4: Fix bugs on decoding logic
-1.1.5: Fix bugs
+1.1.5: Merge codes for Mac OS and Windows for testing 
