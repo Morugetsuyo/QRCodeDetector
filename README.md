@@ -1,5 +1,5 @@
 # QRCodeDetector_TEST
-Pilot Version 1.1.4
+Pilot Version 1.1.5
 
 TCS_QR(ZBar_dev)
 │
@@ -27,12 +27,14 @@ Issues:
 3. Shows different decoding abilities based on the working platform (MacOS vs Windows)
 
 Objectives:
-1. Process image and highlight the detected area
-2. Enhance the detection abilities. (add zxing package or modify the decoding logic)
-3. Field Test
-4. Testify the effectiveness of this program
+1. Fix async logic bugs
+2. Optimization (OS / WEB)
+3. Process image and highlight the detected area
+4. Add different decoding logic to enhance the detection abilities. (zxing package or modify the decoding logic)
+
 
 Updates:
 1.0.2: Fix bugs on 'reset' logic
 1.1.0: Fix bugs on 'display-area' and improve popup UI
 1.1.4: Fix bugs on decoding logic
+1.1.5: Fix bugs
