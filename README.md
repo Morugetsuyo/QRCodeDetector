@@ -27,10 +27,11 @@ Issues:
 3. Shows different decoding abilities based on the working platform (MacOS vs Windows)
 
 Objectives:
-1. Process image and highlight the detected area
-2. Enhance the detection abilities. (add zxing package or modify the decoding logic)
-3. Field Test
-4. Testify the effectiveness of this program
+1. Fix async logic bugs
+2. Optimization (OS / WEB)
+3. Process image and highlight the detected area
+4. Add different decoding logic to enhance the detection abilities. (zxing package or modify the decoding logic)
+
 
 Updates:
 1.0.2: Fix bugs on 'reset' logic
