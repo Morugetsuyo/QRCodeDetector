@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "version": "1.1.4",
-  "name": "QR Code Detector",
-  "description": "QR Code Detector",
+  "version": "1.2.1",
+  "name": "QR Code Detector dev_ver-var OS compatible model",
+  "description": "QR Code Detector dev_ver-var OS compatible model",
   "permissions": [
     "storage",
     "contextMenus",

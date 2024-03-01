@@ -10,68 +10,91 @@ const resultDisplayArea = document.getElementById('result-display-area');
 const resetButton = document.getElementById('reset-btn');
 
 // Helper function to display image and results
-const displayImageAndResult = (dataUrl, resultText) => {
+const displayImage = (dataUrl) => {
   const imageArea = document.getElementById('image-display-area');
   imageArea.innerHTML = ''; // Clear the image area first
   const img = document.createElement('img');
   img.src = dataUrl;
   imageArea.appendChild(img);
+};
 
-  // Display the result
+// Helper function to display results
+const displayResult = (resultText) => {
+  //Display the result
   resultDisplayArea.textContent = resultText;
 };
 
+
 // Function to process the image for QR code detection
 const processImageForQRCode = async (dataUrl) => {
+  displayImage(dataUrl); // Display the image immediately
+  displayResult('Scanning...'); // Show scanning message
+
   const img = new Image();
   img.crossOrigin = 'anonymous'; // Handle cross-origin images
-  //let detectionTimeout;
   
   img.onload = async () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
+    // Optionally adjust the image size if it's too small
+    const scaleFactor = 1; // Adjust as needed based on image resolution and QR code size
+    canvas.width = img.naturalWidth * scaleFactor;
+    canvas.height = img.naturalHeight * scaleFactor;
 
     // Fill the canvas with a white background to handle images with transparency
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // Optionally, apply preprocessing to the canvas here, if need for better QR code detection
-      
-      try {
-        await qrcode.ready();
-        const detectionResults = await qrcode.detect(canvas, canvas.width, canvas.height);
-        displayImageAndResult(dataUrl, detectionResults.length > 0 ? `QR Code Detected: ${detectionResults[0].data}` : 'No QR code');
-      } catch (error) {
-        console.error('QR Code detection error or timeout:', error);
-        displayImageAndResult(dataUrl, error.toString());
-      }
-    };
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // Using luminosity method
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      const gray = imageData.data[i] * 0.299 + imageData.data[i + 1] * 0.587 + imageData.data[i + 2] * 0.144;
+      imageData.data[i] = gray;
+      imageData.data[i + 1] = gray;
+      imageData.data[i + 2] = gray;
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    // Apply sharpening filter
+    // This is a simple sharpen effect -> consider using a convolution filter
+    ctx.filter = 'contrast(150%)';
+    ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height)
+
+
+    try {
+      await qrcode.ready();
+      const detectionResults = await qrcode.detect(canvas, canvas.width, canvas.height);
+      displayResult(detectionResults.length > 0 ? `QR Code Detected: ${detectionResults[0].data}` : 'No QR code');
+    } catch (error) {
+      console.error('QR Code detection error or timeout:', error);
+      displayResult(error.toString());
+    }
+  };
+
   img.onerror = (e) => {
     console.error('Image load error:', e);
-    displayImageAndResult(dataUrl, 'Image load error');
+    displayResult('Image load error');
   };
+
   img.src = dataUrl;
 };
 
 // Add detection event listener to QRCode instance
 qrcode.on('detect', e => {
   const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
-  displayImageAndResult(imageInput.value, resultText);
+  displayResult(resultText);
 });
 
 // Event listener for the 'Scan' button
 scanButton.addEventListener('click', () => {
     chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
-    if (chrome.runtime.lastError) {
-    console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
-    resultDisplayArea.textContent = 'Error capturing the tab.';
-    return;
-    }
-    processImageForQRCode(dataUrl);
-    displayImageAndResult(dataUrl, 'Scanning...');
+      if (chrome.runtime.lastError) {
+        console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
+        displayResult('Error capturing the tab.');
+        return;
+      }
+      processImageForQRCode(dataUrl);
   });
 });
     
@@ -91,7 +114,6 @@ imageInput.addEventListener('change', (event) => {
   reader.onload = (e) => {
     const dataUrl = e.target.result;
     processImageForQRCode(dataUrl);
-    displayImageAndResult(dataUrl, 'Scanning...');
   };
   reader.readAsDataURL(file);
 });
