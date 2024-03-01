@@ -1,5 +1,5 @@
 # QRCodeDetector_TEST
-Pilot Version 1.1.4
+Pilot Version 1.2.1
 
 TCS_QR(ZBar_dev)
 │
@@ -28,11 +28,14 @@ Issues:
 
 Objectives:
 1. Process image and highlight the detected area
-2. Enhance the detection abilities. (add zxing package or modify the decoding logic)
+2. Enhance the detection abilities. (Add multiple decoding packages, or using convolution filter on the 'processImageForQRCode')
 3. Field Test
 4. Testify the effectiveness of this program
 
 Updates:
-1.0.2: Fix bugs on 'reset' logic
-1.1.0: Fix bugs on 'display-area' and improve popup UI
-1.1.4: Fix bugs on decoding logic
+1.0.2: Fixed bugs on 'reset' logic
+1.1.0: Fixed bugs on 'display-area' and improve popup UI
+1.1.4: Fixed bugs on decoding logic
+1.1.7: Tested different zbar.js library
+1.1.9: Fixed asynchronous errors
+1.2.1: Added scaleFactor, sharpening, and grayscale on the processImageForQRCode

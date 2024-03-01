@@ -94,12 +94,13 @@ class WasmQRCode {
     });
   }
   detect(source, width, height) {
-    return new Promise((_resolve, _reject) => {
-      if (this.isQRCodeDetected) return; // Check if already detected
+    return new Promise((resolve, reject) => {
+      if (this.isQRCodeDetected) {
+        // Resolve immediately if a QR code has already been detected to prevent re-processing
+        return resolve({message: 'QR Code already detected. Skipping detection.'});
+      }
       const {canvas, ctx} = this;
-      Object.assign(canvas, {
-        width, height
-      });
+      Object.assign(canvas, { width, height });
       ctx.drawImage(source, 0, 0, width, height);
       const dataBuf = ctx.getImageData(0, 0, width, height).data;
       // write to WASM
@@ -107,7 +108,7 @@ class WasmQRCode {
       const data = new Uint8Array(dataBuf);
       const len = width * height;
       if (len * 4 !== data.byteLength) {
-        throw Error('dataBuf does not match width and height');
+        return reject(new Error('dataBuf does not match width and height'));
       }
       const buf = this.inst._malloc(len);
       for (let i = 0; i < len; ++i) {
@@ -127,9 +128,10 @@ class WasmQRCode {
         const set = new SymbolSetPtr(res, this.inst.HEAPU8.buffer);
         const decoder = new TextDecoder();
         let symbol = set.head;
+        let detections = [];
         
         while (symbol !== null) {
-          this.emit('detect', {
+          detections.push({
             origin: 'wasm',
             symbol: TYPES[symbol.type],
             data: decoder.decode(symbol.data),
@@ -137,10 +139,14 @@ class WasmQRCode {
           });
           symbol = symbol.next;
         }
+        resolve(detections); // Resolve the promise with the detection results
+      } else {
+        // If no QR code is detected, resolve with an indication that no QR codes were found
+        resolve({message: 'No QR Code detected.'});
       }
-      // destroy
+      // Always free the allocated memory to avoid memory leaks
       this.inst._Image_destory(imagePtr);
-    })
+    });
   }
 
   resetDetection() {
