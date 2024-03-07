@@ -58,7 +58,7 @@ const processImageForQRCode = async (dataUrl) => {
 
     // Apply sharpening filter
     // This is a simple sharpen effect -> consider using a convolution filter
-    ctx.filter = 'contrast(120%)';
+    ctx.filter = 'contrast(150%)';
     ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height)
 
 
