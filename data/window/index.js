@@ -1,13 +1,14 @@
 'use strict';
 
 // Grab the necessary DOM elements
-const qrcode = new QRCode();
-const scanButton = document.getElementById('scan-btn');
-const localButton = document.getElementById('local-btn');
-const imageInput = document.getElementById('image-input');
 const imageDisplayArea = document.getElementById('image-display-area');
 const resultDisplayArea = document.getElementById('result-display-area');
+const imageInput = document.getElementById('image-input');
+const scanButton = document.getElementById('scan-btn');
+const localButton = document.getElementById('local-btn');
 const resetButton = document.getElementById('reset-btn');
+
+const qrcode = new QRCode();
 
 // Helper function to display image and results
 const displayImage = (dataUrl) => {
@@ -86,20 +87,30 @@ qrcode.on('detect', e => {
   displayResult(resultText);
 });
 
+// Function to reset previous work
+const resetPreviousWork = () => {
+  imageDisplayArea.innerHTML = 'Image will be displayed here';
+  resultDisplayArea.textContent = 'Result will be displayed here';
+  qrcode.resetDetection();
+  imageInput.value = '';
+}
+
 // Event listener for the 'Scan' button
 scanButton.addEventListener('click', () => {
-    chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
-      if (chrome.runtime.lastError) {
-        console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
-        displayResult('Error capturing the tab.');
-        return;
-      }
-      processImageForQRCode(dataUrl);
+  resetPreviousWork();
+  chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
+      displayResult('Error capturing the tab.');
+      return;
+    }
+    processImageForQRCode(dataUrl);
   });
 });
     
 // Event listener for the 'Local' button to trigger the hidden file input
 localButton.addEventListener('click', () => {
+  resetPreviousWork();
   imageInput.click(); // Simulate a click on the hidden file input
 });
     
