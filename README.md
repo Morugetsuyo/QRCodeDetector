@@ -27,10 +27,10 @@ Issues:
 3. Shows different decoding abilities based on the working platform (MacOS vs Windows)
 
 Objectives:
-1. Process image and highlight the detected area
+1. Process image and highlight the detected area (Add polygon)
 2. Enhance the detection abilities. (Add multiple decoding packages, or using convolution filter on the 'processImageForQRCode')
 3. Field Test
-4. Testify the effectiveness of this program
+4. Calculate application credibility
 
 Updates:
 1.0.2: Fixed bugs on 'reset' logic
