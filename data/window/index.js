@@ -47,19 +47,18 @@ const processImageForQRCode = async (dataUrl) => {
 
     let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
-    // Convert to grayscale using luminosity method
+    // Image preprocessing steps
     imageData = convertToGrayscale(imageData);
-
-    // Apply a sharpening effect
-    // imageData = applySharpen(imageData);
-
-    // Apply contrast adjustment dynamically based on image content
+    imageData = applySharpen(imageData);
     imageData = adjustContrast(imageData);
 
     // Optional: Apply edge detection to enhance QR code edges
     imageData = applyEdgeDetection(imageData);
 
     ctx.putImageData(imageData, 0, 0);
+
+    const processedDataUrl = canvas.toDataURL('image/png');
+    displayImage(processedDataUrl);
 
     try {
       await qrcode.ready();
@@ -87,14 +86,24 @@ function convertToGrayscale(imageData) {
   return imageData;
 }
 
-/* function applySharpen(imageData) {
-  const sharpenKernel = [
-    [0, -1, 0],
-    [-1, 5, ,-1],
-    [0, -1, 0]
-  ]
-  return conv_2d(sharpenKernel, imageData); // Implement sharpening logic here 
-} */
+function applySharpen(imageData) {
+  const width = imageData.width;
+  const height = imageData.height;
+  const result = new ImageData(width, height);
+
+  // A simplified approach to increase pixel contrast with its neighbors
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      // Simple sharpening: increase the contrast of the current pixel with its surrounding pixels
+      result.data[i] = Math.min(255, Math.max(0, 1.5 * imageData.data[i] - 0.5 * (imageData.data[i - 4] + imageData.data[i + 4])));
+      result.data[i + 1] = Math.min(255, Math.max(0, 1.5 * imageData.data[i + 1] - 0.5 * (imageData.data[i - 3] + imageData.data[i + 5])));
+      result.data[i + 2] = Math.min(255, Math.max(0, 1.5 * imageData.data[i + 2] - 0.5 * (imageData.data[i - 2] + imageData.data[i + 6])));
+      result.data[i + 3] = imageData.data[i + 3]; // Copy alpha channel
+    }
+  }
+  return result;
+}
 
 function adjustContrast(imageData, contrast = 1.5) {
   const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
