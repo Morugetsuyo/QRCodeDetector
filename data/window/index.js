@@ -51,7 +51,7 @@ const processImageForQRCode = async (dataUrl) => {
     imageData = convertToGrayscale(imageData);
 
     // Apply a sharpening effect
-    imageData = applySharpen(imageData);
+    // imageData = applySharpen(imageData);
 
     // Apply contrast adjustment dynamically based on image content
     imageData = adjustContrast(imageData);
@@ -87,14 +87,14 @@ function convertToGrayscale(imageData) {
   return imageData;
 }
 
-function applySharpen(imageData) {
+/* function applySharpen(imageData) {
   const sharpenKernel = [
     [0, -1, 0],
-    [-1, 5, ,1],
+    [-1, 5, ,-1],
     [0, -1, 0]
   ]
   return conv_2d(sharpenKernel, imageData); // Implement sharpening logic here 
-}
+} */
 
 function adjustContrast(imageData, contrast = 1.5) {
   const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
@@ -107,8 +107,47 @@ function adjustContrast(imageData, contrast = 1.5) {
 }
 
 function applyEdgeDetection(imageData) {
-  // Placeholder: Apply edge detection algorithm such as Sobel or Canny
-  return imageData; // Implement edge detection logic here
+  const width = imageData.width;
+  const height = imageData.height; 
+  const sobelKenrelX = [
+    [-1, -2, -1],
+    [0, 0, 0],
+    [1, 2, 1]
+  ];
+  const sobelKenrelY = [
+    [-1, -2, -1],
+    [0, 0, 0],
+    [1, 2, 1]
+  ];
+
+  function getPixelIntensity(x, y) {
+    if (x < 0 || x >= width || y < 0 || y >= height) return 0;
+    const index = (y * width + x) * 4;
+    const r = imageData.data[index];
+    const g = imageData.data[index + 1];
+    const b = imageData.data[index + 2];
+    // Convert to grayscale intensity
+    return r * 0.3 + g * 0.59 + b * 0.11;
+  }
+
+  const result = new ImageData(width, height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let gx = 0, gy = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const intensity = getPixelIntensity(x + dx, y + dy);
+          gx += intensity * sobelKenrelX[dy + 1][dx + 1];
+          gy += intensity * sobelKenrelY[dy + 1][dx + 1];
+        }
+      }
+      const magnitude = Math.sqrt(gx * gx + gy * gy) >>> 0;
+      const index = (y * width + x) * 4;
+      result.data[index] = result.data[index + 1] = result.data[index + 2] = magnitude;
+      result.data[index + 3] = 255; // Opaque alpha channel
+    }
+  }
+  return imageData; 
 }
 
 

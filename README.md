@@ -1,7 +1,7 @@
 # QRCodeDetector_TEST
-Pilot Version 1.2.1
+Pilot Version 1.3.1
 
-TCS_QR(ZBar_dev)
+TCS_QR(ZBar_dev) - Win
 │
 ├── background.js
 ├── manifest.json
@@ -13,7 +13,9 @@ TCS_QR(ZBar_dev)
     └── window
         │
         ├── index.html
+        ├── index_origin.js (backup purposes)
         ├── index.js
+        ├── MarvinColorModelConverter.js
         ├── QRCode.js
         └── ZBar
             ├── README.md
@@ -39,3 +41,4 @@ Updates:
 1.1.7: Tested different zbar.js library
 1.1.9: Fixed asynchronous errors
 1.2.1: Added scaleFactor, sharpening, and grayscale on the processImageForQRCode
+1.3.1: Add functions to preprocess images (new Grayscaling, adjusting contrast, edge detection logic)

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "1.2.1",
+  "version": "1.3.1",
   "name": "QR Code Detector dev_ver-var OS compatible model",
   "description": "QR Code Detector dev_ver-var OS compatible model",
   "permissions": [
@@ -25,7 +25,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "data/window/index.html"
+        "data/window/index.html",
+        "data/window/MarvinColorModelConverter.js"
       ],
       "matches": [
         "<all_urls>"
