@@ -28,8 +28,8 @@ const displayResult = (resultText) => {
 
 // Function to process the image for QR code detection
 const processImageForQRCode = async (dataUrl) => {
-  displayImage(dataUrl); // Display the image immediately
-  displayResult('Scanning...'); // Show scanning message
+  displayImage(dataUrl); 
+  displayResult('Scanning...'); 
 
   const img = new Image();
   img.crossOrigin = 'anonymous'; // Handle cross-origin images
@@ -37,31 +37,29 @@ const processImageForQRCode = async (dataUrl) => {
   img.onload = async () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    // Optionally adjust the image size if it's too small
     const scaleFactor = 1; // Adjust as needed based on image resolution and QR code size
     canvas.width = img.naturalWidth * scaleFactor;
     canvas.height = img.naturalHeight * scaleFactor;
 
-    // Fill the canvas with a white background to handle images with transparency
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    // Using luminosity method
-    for (let i = 0; i < imageData.data.length; i += 4) {
-      const gray = imageData.data[i] * 0.299 + imageData.data[i + 1] * 0.587 + imageData.data[i + 2] * 0.144;
-      imageData.data[i] = gray;
-      imageData.data[i + 1] = gray;
-      imageData.data[i + 2] = gray;
-    }
+    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // Convert to grayscale using luminosity method
+    imageData = convertToGrayscale(imageData);
+
+    // Apply a sharpening effect
+    imageData = applySharpen(imageData);
+
+    // Apply contrast adjustment dynamically based on image content
+    imageData = adjustContrast(imageData);
+
+    // Optional: Apply edge detection to enhance QR code edges
+    imageData = applyEdgeDetection(imageData);
+
     ctx.putImageData(imageData, 0, 0);
-
-    // Apply sharpening filter
-    // This is a simple sharpen effect -> consider using a convolution filter
-    ctx.filter = 'contrast(120%)';
-    ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height)
-
 
     try {
       await qrcode.ready();
@@ -80,6 +78,39 @@ const processImageForQRCode = async (dataUrl) => {
 
   img.src = dataUrl;
 };
+
+function convertToGrayscale(imageData) {
+  for (let i = 0; i < imageData.data.length; i +=4) {
+    const gray = imageData.data[i] * 0.299 + imageData.data[i + 1] * 0.587 + imageData.data[i + 2] * 0.114;
+    imageData.data[i] = imageData.data[i + 1] = imageData.data[i + 2] = gray;
+  }
+  return imageData;
+}
+
+function applySharpen(imageData) {
+  const sharpenKernel = [
+    [0, -1, 0],
+    [-1, 5, ,1],
+    [0, -1, 0]
+  ]
+  return conv_2d(sharpenKernel, imageData); // Implement sharpening logic here 
+}
+
+function adjustContrast(imageData, contrast = 1.5) {
+  const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    imageData.data[i] = factor * (imageData.data[i] - 128) + 128; // R
+    imageData.data[i + 1] = factor * (imageData.data[i + 1] - 128) + 128; // G
+    imageData.data[i + 2] = factor * (imageData.data[i + 2] - 128) + 128; // B
+  }
+  return imageData;
+}
+
+function applyEdgeDetection(imageData) {
+  // Placeholder: Apply edge detection algorithm such as Sobel or Canny
+  return imageData; // Implement edge detection logic here
+}
+
 
 // Add detection event listener to QRCode instance
 qrcode.on('detect', e => {

@@ -1,13 +1,14 @@
 'use strict';
 
 // Grab the necessary DOM elements
-const qrcode = new QRCode();
-const scanButton = document.getElementById('scan-btn');
-const localButton = document.getElementById('local-btn');
-const imageInput = document.getElementById('image-input');
 const imageDisplayArea = document.getElementById('image-display-area');
 const resultDisplayArea = document.getElementById('result-display-area');
+const imageInput = document.getElementById('image-input');
+const scanButton = document.getElementById('scan-btn');
+const localButton = document.getElementById('local-btn');
 const resetButton = document.getElementById('reset-btn');
+
+const qrcode = new QRCode();
 
 // Helper function to display image and results
 const displayImage = (dataUrl) => {
@@ -27,8 +28,8 @@ const displayResult = (resultText) => {
 
 // Function to process the image for QR code detection
 const processImageForQRCode = async (dataUrl) => {
-  displayImage(dataUrl); // Display the image immediately
-  displayResult('Scanning...'); // Show scanning message
+  displayImage(dataUrl); 
+  displayResult('Scanning...'); 
 
   const img = new Image();
   img.crossOrigin = 'anonymous'; // Handle cross-origin images
@@ -36,12 +37,10 @@ const processImageForQRCode = async (dataUrl) => {
   img.onload = async () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    // Optionally adjust the image size if it's too small
     const scaleFactor = 1; // Adjust as needed based on image resolution and QR code size
     canvas.width = img.naturalWidth * scaleFactor;
     canvas.height = img.naturalHeight * scaleFactor;
 
-    // Fill the canvas with a white background to handle images with transparency
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -58,7 +57,7 @@ const processImageForQRCode = async (dataUrl) => {
 
     // Apply sharpening filter
     // This is a simple sharpen effect -> consider using a convolution filter
-    ctx.filter = 'contrast(150%)';
+    ctx.filter = 'contrast(120%)';
     ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height)
 
 
@@ -86,20 +85,30 @@ qrcode.on('detect', e => {
   displayResult(resultText);
 });
 
+// Function to reset previous work
+const resetPreviousWork = () => {
+  imageDisplayArea.innerHTML = 'Image will be displayed here';
+  resultDisplayArea.textContent = 'Result will be displayed here';
+  qrcode.resetDetection();
+  imageInput.value = '';
+}
+
 // Event listener for the 'Scan' button
 scanButton.addEventListener('click', () => {
-    chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
-      if (chrome.runtime.lastError) {
-        console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
-        displayResult('Error capturing the tab.');
-        return;
-      }
-      processImageForQRCode(dataUrl);
+  resetPreviousWork();
+  chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
+      displayResult('Error capturing the tab.');
+      return;
+    }
+    processImageForQRCode(dataUrl);
   });
 });
     
 // Event listener for the 'Local' button to trigger the hidden file input
 localButton.addEventListener('click', () => {
+  resetPreviousWork();
   imageInput.click(); // Simulate a click on the hidden file input
 });
     
