@@ -104,15 +104,6 @@ class WasmQRCode {
       ctx.drawImage(source, 0, 0, width, height);
       let imageData = ctx.getImageData(0, 0, width, height);
 
-      // Apply contrast
-      const contrast = 1.5; // adjust this value
-      const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-      for (let i = 0; i < imageData.data.length; i += 4) {
-        imageData.data[i] = factor * (imageData.data[i] - 128) + 128;
-        imageData.data[i + 1] = factor * (imageData.data[i + 1] - 128) + 128;
-        imageData.data[i + 2] = factor * (imageData.data[i + 2] - 128) + 128;
-      }
-
       // Put image data back into context
       ctx.putImageData(imageData, 0 ,0);
 
