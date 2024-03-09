@@ -37,9 +37,8 @@ const processImageForQRCode = async (dataUrl) => {
   img.onload = async () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const scaleFactor = 1; // Adjust as needed based on image resolution and QR code size
-    canvas.width = img.naturalWidth * scaleFactor;
-    canvas.height = img.naturalHeight * scaleFactor;
+    canvas.width = img.naturalWidth * 2;
+    canvas.height = img.naturalHeight * 2;
 
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
