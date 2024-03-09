@@ -71,6 +71,33 @@ class SymbolSetPtr extends TypePointer {
     return new SymbolPtr(ptr, this.buf);
   }
 }
+class Symbol {
+  constructor(ptr) {
+      this.type = ptr.type;
+      this.typeName = enum_1.ZBarSymbolType[this.type];
+      this.data = ptr.data;
+      this.points = ptr.points;
+      this.time = ptr.time;
+      this.cacheCount = ptr.cacheCount;
+      this.quality = ptr.quality;
+  }
+  static createSymbolsFromPtr(ptr, buf) {
+      if (ptr == 0)
+          return [];
+      const set = new SymbolSetPtr(ptr, buf);
+      let symbol = set.head;
+      const res = [];
+      while (symbol !== null) {
+          res.push(new Symbol(symbol));
+          symbol = symbol.next;
+      }
+      return res;
+  }
+  decode(encoding) {
+      const decoder = new TextDecoder(encoding);
+      return decoder.decode(this.data);
+  }
+}
 
 class WasmQRCode {
   constructor(canvas) {
@@ -150,6 +177,7 @@ class WasmQRCode {
         resolve({message: 'No QR Code detected.'});
       }
       // Always free the allocated memory to avoid memory leaks
+      this.inst._free(buf);
       this.inst._Image_destory(imagePtr);
     });
   }
@@ -220,18 +248,23 @@ class QRCode extends WasmQRCode {
       if (this.isQRCodeDetected) {
         return reject(new Error('QR Code already detected'));
       }
+      let detectionCompleted = false; // Flag to indicate if detection is completed
+
       // Set a timeout for QR code detection
       const timeoutId = setTimeout(() => {
-        this.isQRCodeDetected = false; // Reset the detection flag
-        reject(new Error('Detection timeout - No QR Code'));
+        if (!detectionCompleted) {
+          this.isQRCodeDetected = false; // Reset the detection flag
+          reject(new Error('Detection timeout - No QR Code detected'));
+        }
       }, 5000);
 
       // Try native BarcodeDetector detection
       if (this.barcodeDetector) {
         this.barcodeDetector.detect(source).then(barcodes => {
-          clearTimeout(timeoutId);
+          clearTimeout(timeoutId); // Clear the timeout upon successful detection
           if (barcodes.length > 0) {
-            this.isQRCodeDetected = true; // Set the detection flag to true
+            detectionCompleted = true; // Set the flag to true
+            this.isQRCodeDetected = true; // Update the detection flag
             resolve(barcodes.map(barcode => ({
               origin: 'native',
               symbol: barcode.format,
@@ -242,16 +275,17 @@ class QRCode extends WasmQRCode {
             resolve([]); // Resolve with an empty array if no barcodes are found
           }
         }).catch(error => {
-          clearTimeout(timeoutId);
+          clearTimeout(timeoutId); // Clear the timeout in case of an error
           reject(error);
         });
       } else {
         // Fallback to WASM-based detection
         super.detect(source, width, height).then(result => {
-          clearTimeout(timeoutId);
+          clearTimeout(timeoutId); // Clear the timeout upon successful detection
+          detectionCompleted = true; // Set the flag to true
           resolve(result);
         }).catch(error => {
-          clearTimeout(timeoutId);
+          clearTimeout(timeoutId); // Clear the timeout in case of an error
           reject(error);
         });
       }
@@ -259,4 +293,3 @@ class QRCode extends WasmQRCode {
   } 
   // ... [other methods] ...
 }
-
