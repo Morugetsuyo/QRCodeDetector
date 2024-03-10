@@ -1,5 +1,5 @@
 # QRCodeDetector_TEST
-Pilot Version 1.3.1
+Pilot Version 1.3.3
 
 TCS_QR(ZBar_dev) - Win
 │
@@ -15,7 +15,6 @@ TCS_QR(ZBar_dev) - Win
         ├── index.html
         ├── index_origin.js (backup purposes)
         ├── index.js
-        ├── MarvinColorModelConverter.js
         ├── QRCode.js
         └── ZBar
             ├── README.md
@@ -24,15 +23,14 @@ TCS_QR(ZBar_dev) - Win
 
 
 Issues:
-1. User can't see the detected field.
-2. Problems when there are multiple QR Codes in an image.
-3. Shows different decoding abilities based on the working platform (MacOS vs Windows)
+1. Shows different decoding abilities based on the working platform (MacOS >>> Windows)
 
 Objectives:
-1. Process image and highlight the detected area (Add polygon)
-2. Enhance the detection abilities. (Add multiple decoding packages, or using convolution filter on the 'processImageForQRCode')
-3. Field Test
-4. Calculate application credibility
+1. Optimizing WebAssembly Module Loading (lazy loading & caching wasm module)
+2. Using Web Workers for Image Processing
+3. Consider implementing Polyfill
+4. Enhance sharpening the edges (e.g. sobel edge detection algorithm)
+5. Process image and highlight the detected area (Add polygon)
 
 Updates:
 1.0.2: Fixed bugs on 'reset' logic
@@ -42,3 +40,4 @@ Updates:
 1.1.9: Fixed asynchronous errors
 1.2.1: Added scaleFactor, sharpening, and grayscale on the processImageForQRCode
 1.3.1: Add functions to preprocess images (new Grayscaling, adjusting contrast, edge detection logic)
+1.3.3: Minor Adjustments (Deprecated 'MarvinColorModelConverter' library)
