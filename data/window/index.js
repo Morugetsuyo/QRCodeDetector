@@ -61,8 +61,7 @@ const processImageForQRCode = async (dataUrl) => {
 
     try {
       await qrcode.ready();
-      //const detectionResults = await qrcode.detect(canvas, canvas.width, canvas.height);
-      const detectionResults = await qrcode.detect(imageData);
+      const detectionResults = await qrcode.detect(canvas, canvas.width, canvas.height);
       displayResult(detectionResults.length > 0 ? `QR Code Detected: ${detectionResults[0].data}` : 'No QR code');
     } catch (error) {
       console.error('QR Code detection error or timeout:', error);
