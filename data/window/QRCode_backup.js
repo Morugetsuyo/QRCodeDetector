@@ -110,17 +110,27 @@ class WasmQRCode {
     });
     this.events = {};
     this.isQRCodeDetected = false; // Initialize detection flag
+    this.inst = null; // Initialize Wasm instance as null
+    this.loadingPromise = null; // To track the loading state of the Wasm module
   }
+
   ready() {
     if (this.inst) {
       return Promise.resolve();
     }
-    return instantiate().then(o => {
-      this.inst = o;
-      this.ptr = o._ImageScanner_create();
-    });
+    if (!this.loadingPromise) {
+      this.loadingPromise = instantiate().then(o => {
+        this.inst = o;
+        this.ptr = o._ImageScanner_create();
+        return o;
+      });
+    }
+    return this.loadingPromise;
   }
-  detect(source, width, height) {
+
+  async detect(source, width, height) {
+    await this.ready(); // Ensure Wasm module is loaded before detection
+    
     return new Promise((resolve, reject) => {
       if (this.isQRCodeDetected) {
         // Resolve immediately if a QR code has already been detected to prevent re-processing
@@ -167,7 +177,7 @@ class WasmQRCode {
             origin: 'wasm',
             symbol: TYPES[symbol.type],
             data: decoder.decode(symbol.data),
-            polygon: symbol.points.map(o => [o.x, o.y]).flat()
+            points: symbol.points.map(o => [o.x, o.y]).flat()
           });
           symbol = symbol.next;
         }
@@ -178,7 +188,7 @@ class WasmQRCode {
       }
       // Always free the allocated memory to avoid memory leaks
       this.inst._free(buf);
-      this.inst._Image_destory(imagePtr);
+      this.inst._Image_destroy(imagePtr); // Corrected typo: _Image_destory to _Image_destroy
     });
   }
 
@@ -191,7 +201,7 @@ class WasmQRCode {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
-  
+
   rect(e) {
     const xs = [
       Math.min(...e.polygon.filter((a, i) => i % 2 === 0)),
