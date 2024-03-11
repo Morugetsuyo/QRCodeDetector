@@ -234,6 +234,9 @@ class QRCode extends WasmQRCode {
   constructor(...args) {
     super(...args);
 
+    // Initialize a flag indicating if the QR code detection has already attempted.
+    this.isQRCodeDetected = false;
+
     if (typeof BarcodeDetector !== 'undefined') {
       BarcodeDetector.getSupportedFormats().then(supportedFormats => {
         if (supportedFormats.includes('qr_code')) {
@@ -243,8 +246,8 @@ class QRCode extends WasmQRCode {
     }
   }
 
-  detect(source, width, height) {
-    return new Promise((resolve, reject) => {
+  async detect(source, width, height) {
+    return new Promise(async (resolve, reject) => {
       if (this.isQRCodeDetected) {
         return reject(new Error('QR Code already detected'));
       }
@@ -254,42 +257,43 @@ class QRCode extends WasmQRCode {
       const timeoutId = setTimeout(() => {
         if (!detectionCompleted) {
           this.isQRCodeDetected = false; // Reset the detection flag
-          reject(new Error('Detection timeout - No QR Code detected'));
+          reject(new Error('QR Code detection timeout - No QR code detected'));
         }
       }, 5000);
 
-      // Try native BarcodeDetector detection
+      // Try native BarcodeDetector detection first
       if (this.barcodeDetector) {
-        this.barcodeDetector.detect(source).then(barcodes => {
-          clearTimeout(timeoutId); // Clear the timeout upon successful detection
+        try {
+          const barcodes = await this.barcodeDetector.detect(source);;
+          clearTimeout(timeoutId); // Clear the timeout
           if (barcodes.length > 0) {
-            detectionCompleted = true; // Set the flag to true
-            this.isQRCodeDetected = true; // Update the detection flag
+            detectionCompleted = true; // Set the detection flag
+            this.isQRCodeDetected = true; // Set the detection flag
             resolve(barcodes.map(barcode => ({
               origin: 'native',
               symbol: barcode.format,
               data: barcode.rawValue,
-              points: barcode.cornerPoints
+              polygon: barcode.cornerPoints
             })));
           } else {
-            resolve([]); // Resolve with an empty array if no barcodes are found
+            resolve([]);
           }
-        }).catch(error => {
-          clearTimeout(timeoutId); // Clear the timeout in case of an error
+        } catch (error) {
+          clearTimeout(timeoutId); // Clear the timeout
           reject(error);
-        });
+        }
       } else {
         // Fallback to WASM-based detection
-        super.detect(source, width, height).then(result => {
-          clearTimeout(timeoutId); // Clear the timeout upon successful detection
-          detectionCompleted = true; // Set the flag to true
-          resolve(result);
-        }).catch(error => {
-          clearTimeout(timeoutId); // Clear the timeout in case of an error
+        try {
+          const results = await super.detect(source, width, height);
+          clearTimeout(timeoutId); // Clear the timeout
+          detectionCompleted = true; // Set the detection flag
+          resolve(results);
+        } catch (error) {
+          clearTimeout(timeoutId); // Clear the timeout
           reject(error);
-        });
+        }
       }
     });
-  } 
-  // ... [other methods] ...
+  }
 }
