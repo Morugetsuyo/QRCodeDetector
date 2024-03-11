@@ -271,7 +271,7 @@ class QRCode extends WasmQRCode {
             this.isQRCodeDetected = true; // Set the detection flag
             resolve(barcodes.map(barcode => ({
               origin: 'native',
-              symbol: TYPES[barcode.format],
+              symbol: barcode.format,
               data: barcode.rawValue,
               polygon: barcode.cornerPoints
             })));
