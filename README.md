@@ -1,5 +1,5 @@
 # QRCodeDetector_TEST
-Pilot Version 1.3.3
+Pilot Version 1.3.5
 
 TCS_QR(ZBar_dev) - Win
 │
@@ -41,3 +41,4 @@ Updates:
 1.2.1: Added scaleFactor, sharpening, and grayscale on the processImageForQRCode
 1.3.1: Add functions to preprocess images (new Grayscaling, adjusting contrast, edge detection logic)
 1.3.3: Minor Adjustments (Deprecated 'MarvinColorModelConverter' library)
+1.3.5: Implemented lazy loading 
