@@ -1,5 +1,5 @@
 # QRCodeDetector_TEST
-Pilot Version 1.3.5
+Pilot Version 1.5.1
 
 TCS_QR(ZBar_dev) - Win
 │
@@ -17,6 +17,7 @@ TCS_QR(ZBar_dev) - Win
         ├── index.js
         ├── QRCode_backup.js
         ├── QRCode.js
+        ├── web_worker.js
         └── ZBar
             ├── README.md
             ├── zbar.js
@@ -28,7 +29,7 @@ Issues:
 
 Objectives:
 1. Optimizing WebAssembly Module Loading (lazy loading & caching wasm module)
-2. Using Web Workers for Image Processing
+2. Using Web Workers for Image processing (QRCode.js)
 3. Consider implementing Polyfill & distortion correction libraries. (https://jywarren.github.io/fisheyegl/example/#a=0.942&b=0.865&Fx=0.42&Fy=0.34&scale=0.527&x=0.266&y=0.489)
 4. Enhance sharpening the edges (e.g. sobel edge detection algorithm)
 5. Process image and highlight the detected area (Add polygon)
@@ -43,3 +44,4 @@ Updates:
 1.3.1: Add functions to preprocess images (new Grayscaling, adjusting contrast, edge detection logic)
 1.3.3: Minor Adjustments (Deprecated 'MarvinColorModelConverter' library)
 1.3.5: Implemented lazy loading 
+1.5.1: Implemented Web Worker for image preprocessing (indes.js -> web_worker.js)
