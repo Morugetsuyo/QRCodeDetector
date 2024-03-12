@@ -13,8 +13,9 @@ TCS_QR(ZBar_dev) - Win
     └── window
         │
         ├── index.html
-        ├── index_origin.js (backup purposes)
+        ├── index_backup.js
         ├── index.js
+        ├── QRCode_backup.js
         ├── QRCode.js
         └── ZBar
             ├── README.md
