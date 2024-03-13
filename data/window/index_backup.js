@@ -24,138 +24,48 @@ const displayResult = (resultText) => {
   //Display the result
   resultDisplayArea.textContent = resultText;
 };
+const imageProcessingWorker = new Worker('web_worker.js');
 
+// Function to handle messages from the worker, including processed images
+imageProcessingWorker.onmessage = async function(event) {
+  const { action, processedDataUrl } = event.data;
+  if (action === 'imageProcessed') {
+    displayImage(processedDataUrl); // Display the processed image
 
-// Function to process the image for QR code detection
-const processImageForQRCode = async (dataUrl) => {
-  displayImage(dataUrl); 
-  displayResult('Scanning...'); 
-
-  const img = new Image();
-  img.crossOrigin = 'anonymous'; // Handle cross-origin images
-  
-  img.onload = async () => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = img.naturalWidth * 2;
-    canvas.height = img.naturalHeight * 2;
-
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
-    // Image preprocessing steps
-    imageData = convertToGrayscale(imageData);
-    imageData = applySharpen(imageData);
-    imageData = adjustContrast(imageData);
-
-    // Optional: Apply edge detection to enhance QR code edges
-    imageData = applyEdgeDetection(imageData);
-
-    ctx.putImageData(imageData, 0, 0);
-
-    const processedDataUrl = canvas.toDataURL('image/png');
-    displayImage(processedDataUrl);
-
-    try {
-      await qrcode.ready();
-      const detectionResults = await qrcode.detect(canvas, canvas.width, canvas.height);
-      displayResult(detectionResults.length > 0 ? `QR Code Detected: ${detectionResults[0].data}` : 'No QR code');
-    } catch (error) {
-      console.error('QR Code detection error or timeout:', error);
-      displayResult(error.toString());
-    }
-  };
-
-  img.onerror = (e) => {
-    console.error('Image load error:', e);
-    displayResult('Image load error');
-  };
-
-  img.src = dataUrl;
+    // Immediately proceed to QR code detection with the processed image
+    detectQRCodeFromProcessedDataUrl(processedDataUrl);
+  }
 };
 
-function convertToGrayscale(imageData) {
-  for (let i = 0; i < imageData.data.length; i +=4) {
-    const gray = imageData.data[i] * 0.299 + imageData.data[i + 1] * 0.587 + imageData.data[i + 2] * 0.114;
-    imageData.data[i] = imageData.data[i + 1] = imageData.data[i + 2] = gray;
+// Function to process the image for QR code detection, including sending the image to the worker
+const processImageForQRCode = (dataUrl) => {
+  displayImage(dataUrl); // Optionally display the original image or a loading indicator
+  displayResult('Processing image...');
+
+  // Convert the data URL to a blob and send it to the worker for processing
+  fetch(dataUrl)
+    .then(response => response.blob())
+    .then(blob => {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(blob);
+      reader.onloadend = () => {
+        // Post the image data to the worker for processing
+        imageProcessingWorker.postMessage({ action: 'processImage', imageData: reader.result }, [reader.result]);
+      };
+    });
+};
+
+// Helper function to initiate QR code detection on a processed image
+async function detectQRCodeFromProcessedDataUrl(processedDataUrl) {
+  try {
+    const imageBitmap = await createImageBitmap(await (await fetch(processedDataUrl)).blob());
+    await qrcode.ready();
+    const detectionResults = await qrcode.detect(imageBitmap, imageBitmap.width, imageBitmap.height);
+    displayResult(detectionResults.length > 0 ? `QR Code Detected: ${detectionResults[0].data}` : 'No QR code found');
+  } catch (error) {
+    console.error('QR Code detection error or timeout:', error);
+    displayResult(`Error during detection: ${error.toString()}`);
   }
-  return imageData;
-}
-
-function applySharpen(imageData) {
-  const width = imageData.width;
-  const height = imageData.height;
-  const result = new ImageData(width, height);
-
-  // A simplified approach to increase pixel contrast with its neighbors
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const i = (y * width + x) * 4;
-      // Simple sharpening: increase the contrast of the current pixel with its surrounding pixels
-      result.data[i] = Math.min(255, Math.max(0, 1.5 * imageData.data[i] - 0.5 * (imageData.data[i - 4] + imageData.data[i + 4])));
-      result.data[i + 1] = Math.min(255, Math.max(0, 1.5 * imageData.data[i + 1] - 0.5 * (imageData.data[i - 3] + imageData.data[i + 5])));
-      result.data[i + 2] = Math.min(255, Math.max(0, 1.5 * imageData.data[i + 2] - 0.5 * (imageData.data[i - 2] + imageData.data[i + 6])));
-      result.data[i + 3] = imageData.data[i + 3]; // Copy alpha channel
-    }
-  }
-  return result;
-}
-
-function adjustContrast(imageData, contrast = 1.5) {
-  const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-  for (let i = 0; i < imageData.data.length; i += 4) {
-    imageData.data[i] = factor * (imageData.data[i] - 128) + 128; // R
-    imageData.data[i + 1] = factor * (imageData.data[i + 1] - 128) + 128; // G
-    imageData.data[i + 2] = factor * (imageData.data[i + 2] - 128) + 128; // B
-  }
-  return imageData;
-}
-
-function applyEdgeDetection(imageData) {
-  const width = imageData.width;
-  const height = imageData.height; 
-  const sobelKenrelX = [
-    [-1, -2, -1],
-    [0, 0, 0],
-    [1, 2, 1]
-  ];
-  const sobelKenrelY = [
-    [-1, -2, -1],
-    [0, 0, 0],
-    [1, 2, 1]
-  ];
-
-  function getPixelIntensity(x, y) {
-    if (x < 0 || x >= width || y < 0 || y >= height) return 0;
-    const index = (y * width + x) * 4;
-    const r = imageData.data[index];
-    const g = imageData.data[index + 1];
-    const b = imageData.data[index + 2];
-    // Convert to grayscale intensity
-    return r * 0.3 + g * 0.59 + b * 0.11;
-  }
-
-  const result = new ImageData(width, height);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      let gx = 0, gy = 0;
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          const intensity = getPixelIntensity(x + dx, y + dy);
-          gx += intensity * sobelKenrelX[dy + 1][dx + 1];
-          gy += intensity * sobelKenrelY[dy + 1][dx + 1];
-        }
-      }
-      const magnitude = Math.sqrt(gx * gx + gy * gy) >>> 0;
-      const index = (y * width + x) * 4;
-      result.data[index] = result.data[index + 1] = result.data[index + 2] = magnitude;
-      result.data[index + 3] = 255; // Opaque alpha channel
-    }
-  }
-  return imageData; 
 }
 
 
