@@ -7,7 +7,7 @@
     <style>
         /* Optional: Styles for the selection feedback */
         .selection-rectangle {
-            border: 2px dashed #00F;
+            border: 1px solid #5eeb57;
             position: absolute;
             pointer-events: none; /* Allows the rectangle to be visually present but not interfere with mouse events */
         }
@@ -20,6 +20,7 @@
 </div>
 
 <script>
+
 let startX, startY, endX, endY;
 const selectionRectangle = document.createElement('div');
 selectionRectangle.className = 'selection-rectangle';
