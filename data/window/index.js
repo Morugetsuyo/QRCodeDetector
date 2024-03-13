@@ -92,6 +92,7 @@ scanButton.addEventListener('click', () => {
       displayResult('Error capturing the tab.');
       return;
     }
+    // Capturing function place holder 
     processImageForQRCode(dataUrl);
   });
 });
