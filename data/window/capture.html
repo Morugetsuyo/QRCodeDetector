@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select & Capture Area</title>
+    <script src="/html2canvas.min.js"></script>
+    <style>
+        /* Optional: Styles for the selection feedback */
+        .selection-rectangle {
+            border: 2px dashed #00F;
+            position: absolute;
+            pointer-events: none; /* Allows the rectangle to be visually present but not interfere with mouse events */
+        }
+    </style>
+</head>
+<body>
+
+<div id="captureArea" style="width: 100vw; height: 100vh; background-color: #f0f0f0;">
+    <!-- Your content here -->
+</div>
+
+<script>
+let startX, startY, endX, endY;
+const selectionRectangle = document.createElement('div');
+selectionRectangle.className = 'selection-rectangle';
+document.body.appendChild(selectionRectangle);
+
+// Function to update the visual feedback rectangle
+function updateSelectionRectangle() {
+    const x = Math.min(startX, endX);
+    const y = Math.min(startY, endY);
+    const width = Math.abs(startX - endX);
+    const height = Math.abs(startY - endY);
+    selectionRectangle.style.left = x + 'px';
+    selectionRectangle.style.top = y + 'px';
+    selectionRectangle.style.width = width + 'px';
+    selectionRectangle.style.height = height + 'px';
+}
+
+// Clear the selection rectangle
+function clearSelectionRectangle() {
+    selectionRectangle.style.width = '0px';
+    selectionRectangle.style.height = '0px';
+}
+
+document.getElementById('captureArea').addEventListener('mousedown', e => {
+    startX = e.pageX;
+    startY = e.pageY;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+});
+
+function onMouseMove(e) {
+    endX = e.pageX;
+    endY = e.pageY;
+    updateSelectionRectangle();
+}
+
+function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    
+    // Capture and crop to the selected area
+    html2canvas(document.body).then(canvas => {
+        const ctx = canvas.getContext('2d');
+        // Adjust these coordinates/sizes as necessary
+        const x = Math.min(startX, endX);
+        const y = Math.min(startY, endY);
+        const width = Math.abs(startX - endX);
+        const height = Math.abs(startY - endY);
+        const croppedCanvas = document.createElement('canvas');
+        croppedCanvas.width = width;
+        croppedCanvas.height = height;
+        const croppedCtx = croppedCanvas.getContext('2d');
+        croppedCtx.drawImage(canvas, x, y, width, height, 0, 0, width, height);
+        window.open(croppedCanvas.toDataURL(), '_blank');
+    }).catch(error => {
+        console.error('Error capturing area:', error);
+    });
+
+    clearSelectionRectangle(); // Clear the selection rectangle once the capture is done
+}
+</script>
+
+</body>
+</html>
