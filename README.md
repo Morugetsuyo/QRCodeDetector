@@ -4,6 +4,7 @@ Pilot Version
 TCS_QR(ZBar_dev) - Win
 │
 ├── background.js
+├── contentScript.js
 ├── manifest.json
 ├── popup.png
 ├── readme.md
@@ -13,11 +14,15 @@ TCS_QR(ZBar_dev) - Win
     └── window
         │
         ├── index.html
-        ├── index_backup.js
+        ├── html2canvas.min.js
+        ├── capture.html
         ├── index.js
-        ├── QRCode_backup.js
         ├── QRCode.js
         ├── web_worker.js
+        ├── Backup(deprecated)
+        │   ├── index_backup.js
+        │   └── QRCode_backup.js        │
+        │
         └── ZBar
             ├── README.md
             ├── zbar.js
@@ -46,5 +51,6 @@ Updates:
 1.3.5: Implemented lazy loading 
 1.5.1: Implemented Web Worker for image preprocessing (indes.js -> web_worker.js)
 2.0.1: Implemented content script and functions for caturing specific tab area.
+2.1.1: test ver. (communication check between index.js and contentScript.js)
 
 https://www.goodreads.com/book/show/4865.How_to_Win_Friends_and_Influence_People
