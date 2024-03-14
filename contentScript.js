@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addEventListener(function(request, _sender, _sendRespon
     }
     _sendResponse({status: "success"});
   }
-})
+});
 
 let selectionDiv = document.createElement('div');
 document.body.appendChild(selectionDiv);
