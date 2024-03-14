@@ -12,11 +12,10 @@ const qrcode = new QRCode();
 
 // Helper function to display image and results
 const displayImage = (dataUrl) => {
-  const imageArea = document.getElementById('image-display-area');
-  imageArea.innerHTML = ''; // Clear the image area first
+  imageDisplayArea.innerHTML = ''; // Clear the image area first
   const img = document.createElement('img');
   img.src = dataUrl;
-  imageArea.appendChild(img);
+  imageDisplayArea.appendChild(img);
 };
 
 // Helper function to display results
@@ -24,6 +23,7 @@ const displayResult = (resultText) => {
   //Display the result
   resultDisplayArea.textContent = resultText;
 };
+
 const imageProcessingWorker = new Worker('web_worker.js');
 
 // Function to handle messages from the worker, including processed images
@@ -31,9 +31,7 @@ imageProcessingWorker.onmessage = async function(event) {
   const { action, processedDataUrl } = event.data;
   if (action === 'imageProcessed') {
     displayImage(processedDataUrl); // Display the processed image
-
-    // Immediately proceed to QR code detection with the processed image
-    detectQRCodeFromProcessedDataUrl(processedDataUrl);
+    detectQRCodeFromProcessedDataUrl(processedDataUrl); // Immediately proceed to QR code detection with the processed image
   }
 };
 
@@ -83,18 +81,74 @@ const resetPreviousWork = () => {
   imageInput.value = '';
 }
 
-// Event listener for the 'Scan' button
+// Screen are capture logic - Start
+let startX, startY, endX, endY;
+const selectionRectangle = document.createElement('div');
+selectionRectangle.className = 'selection-rectangle';
+document.body.appendChild(selectionRectangle);
+
+const updateSelectionRectangle = () => {
+  const x = Math.min(startX, endX);
+  const y = Math.min(startY, endY);
+  const width = Math.abs(startX - endX);
+  const height = Math.abs(startY - endY);
+  selectionRectangle.style.left = `${x}px`;
+  selectionRectangle.style.top = `${y}px`;
+  selectionRectangle.style.width = `${width}px`;
+  selectionRectangle.style.height = `${height}px`;
+};
+
 scanButton.addEventListener('click', () => {
   resetPreviousWork();
-  chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
-    if (chrome.runtime.lastError) {
-      console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message);
-      displayResult('Error capturing the tab.');
-      return;
+  document.body.appendChild(selectionRectangle);
+  let isDrawing = false; // Allow users to draw a rectangle on the screen
+
+  const startDrawing = (e) => {
+    isDrawing = true;
+    startX = e.pageX;
+    startY = e.pageY;
+    selectionRectangle.style.display = 'block';
+  };
+
+  const stopDrawing = () => {
+    if (isDrawing) {
+      document.removeEventListener('mousemove', onMouseMove);
+      isDrawing = false;
+      captureSelectedArea();
     }
-    // Capturing function place holder 
-    processImageForQRCode(dataUrl);
-  });
+  };
+
+  const onMouseMove = (e) => {
+    if (!isDrawing) return;
+    endX = e.pageX;
+    endY = e.pageY;
+    updateSelectionRectangle();
+  }
+  
+  const captureSelectedArea = () => {
+    const rect = selectionRectangle.getBoundingClientRect();
+    html2canvas(document.body, {
+      x: rect.left + window.scrollX,
+      y: rect.top + window.scrollY, // Corrected from `rect.left` to `rect.top` for the `y` property
+      width: rect.width,
+      height: rect.height,
+      useCORS: true,
+      logging: true,
+      letterRendering: 1,
+      allowTaint: false,
+    }).then((canvas) => {
+      const dataUrl = canvas.toDataURL(); // Corrected method name
+      processImageForQRCode(dataUrl); // process the captured image immediately
+      selectionRectangle.style.display = 'none'; // Hide after capturing
+    }).catch((error) => {
+      console.error('Error capturing area:', error);
+    });
+};
+
+
+  document.addEventListener('mousedown', startDrawing, { once: true });
+  document.addEventListener('mouseup', stopDrawing, { once: true });
+  document.addEventListener('mousemove', onMouseMove);
 });
     
 // Event listener for the 'Local' button to trigger the hidden file input
