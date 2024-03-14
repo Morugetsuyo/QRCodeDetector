@@ -1,5 +1,5 @@
 # QRCodeDetector_TEST
-Pilot Version 1.5.1
+Pilot Version 
 
 TCS_QR(ZBar_dev) - Win
 │
@@ -45,3 +45,4 @@ Updates:
 1.3.3: Minor Adjustments (Deprecated 'MarvinColorModelConverter' library)
 1.3.5: Implemented lazy loading 
 1.5.1: Implemented Web Worker for image preprocessing (indes.js -> web_worker.js)
+2.0.1: Implemented content script and functions for caturing specific tab area.
