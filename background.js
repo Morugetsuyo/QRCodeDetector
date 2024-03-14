@@ -4,7 +4,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request.action === "captureTab") {
     chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
       if (chrome.runtime.lastError) {
-        console.error(chrome.runtime.lastError.message);
+        console.error('Error capturing tab', chrome.runtime.lastError.message);
         sendResponse({ error: chrome.runtime.lastError.message });
       } else {
         sendResponse({ imageSrc: dataUrl });
@@ -14,11 +14,28 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     return true;  // Indicate asynchronous response
   }
   else if (request.action === 'processLocalImage') {
-    // Assuming the image data URL is sent in the request
     const dataUrl = request.dataUrl;
-    // Process the local image here or send it for further processing
     console.log('Local image processed', dataUrl);
     sendResponse({ message: 'Local image processed' });
     return true;
   }
+  else if (request.action === 'scrollPage') {
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      chrome.scripting.executeScript({
+        target: {tabId: tabs[0].id},
+        function: scrollToBottom
+      }).then(() => {
+        sendResponse({message: 'Page scrolled'});
+      }).catch((error) => {
+        console.error('Error scrolling page:', error);
+        sendResponse({error: error.toString()});
+      });
+    });
+    return true;
+  }
 });
+
+// Function to scroll to the bottom of the page
+function scrollToBottom() {
+  window.scrollTo(0, document.body.scrollHeight);
+}
