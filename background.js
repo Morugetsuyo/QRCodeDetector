@@ -1,41 +1,77 @@
 'use strict';
 
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
-  if (request.action === "captureTab") {
-    chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
-      if (chrome.runtime.lastError) {
-        console.error('Error capturing tab', chrome.runtime.lastError.message);
-        sendResponse({ error: chrome.runtime.lastError.message });
-      } else {
-        sendResponse({ imageSrc: dataUrl });
-        console.log('Captured tab image.');
-      }
-    });
-    return true;  // Indicate asynchronous response
-  }
-  else if (request.action === 'processLocalImage') {
-    const dataUrl = request.dataUrl;
-    console.log('Local image processed', dataUrl);
-    sendResponse({ message: 'Local image processed' });
-    return true;
-  }
-  else if (request.action === 'scrollPage') {
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      chrome.scripting.executeScript({
-        target: {tabId: tabs[0].id},
-        function: scrollToBottom
-      }).then(() => {
-        sendResponse({message: 'Page scrolled'});
-      }).catch((error) => {
-        console.error('Error scrolling page:', error);
-        sendResponse({error: error.toString()});
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  switch (request.action) {
+    case "captureTab":
+      chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+        if (chrome.runtime.lastError) {
+          console.error('Error capturing tab:', chrome.runtime.lastError.message);
+          sendResponse({ error: chrome.runtime.lastError.message });
+        } else {
+          sendResponse({ imageSrc: dataUrl });
+          console.log('Captured tab image.');
+        }
       });
-    });
-    return true;
+      return true; // Indicates async response for sendResponse
+
+    case 'initiateAreaSelection':
+      if (sender.tab?.id) {
+        initiateAreaSelection(sender.tab.id, sendResponse);
+      } else {
+        sendResponse({ error: 'No active tab ID found.' });
+      }
+      return true; // Indicates async response for sendResponse
+
+    case 'processLocalImage':
+      console.log('Local image processed', request.dataUrl);
+      sendResponse({ message: 'Local image processed' });
+      return true;
+
+    case 'areaSelectionCompleted':
+      setUserHasCompletedSelection(true);
+      sendResponse({ status: 'success', message: 'Area selection completion status updated.' });
+      return true;
+
+    case 'checkSelectionStatus':
+      checkUserSelectionStatus((completed) => {
+        sendResponse({ status: 'success', selectionCompleted: completed });
+      });
+      return true; // Indicates async response for sendResponse
   }
 });
 
-// Function to scroll to the bottom of the page
-function scrollToBottom() {
-  window.scrollTo(0, document.body.scrollHeight);
+function initiateAreaSelection(tabId, sendResponse) {
+  chrome.scripting.executeScript({
+    target: { tabId: tabId },
+    files: ['contentScript.js']
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.error('Error injecting content script for area selection:', chrome.runtime.lastError.message);
+      sendResponse({ error: chrome.runtime.lastError.message });
+    } else {
+      console.log('Content script injected for area selection.');
+      sendResponse({ success: true });
+    }
+  });
+}
+
+function setUserHasCompletedSelection(completed) {
+  chrome.storage.local.set({ 'selectionCompleted': completed }, () => {
+    if (chrome.runtime.lastError) {
+      console.error(`Error setting selectionCompleted: ${chrome.runtime.lastError}`);
+    } else {
+      console.log('Selection completion status updated successfully.');
+    }
+  });
+}
+
+function checkUserSelectionStatus(callback) {
+  chrome.storage.local.get('selectionCompleted', (result) => {
+    if (chrome.runtime.lastError) {
+      console.error(`Error retrieving selectionCompleted: ${chrome.runtime.lastError}`);
+      callback(false); // Default to false on error
+    } else {
+      callback(result.selectionCompleted === true);
+    }
+  });
 }

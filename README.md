@@ -46,3 +46,5 @@ Updates:
 1.3.5: Implemented lazy loading 
 1.5.1: Implemented Web Worker for image preprocessing (indes.js -> web_worker.js)
 2.0.1: Implemented content script and functions for caturing specific tab area.
+
+https://www.goodreads.com/book/show/4865.How_to_Win_Friends_and_Influence_People

@@ -20,18 +20,15 @@ const displayImage = (dataUrl) => {
 
 // Helper function to display results
 const displayResult = (resultText) => {
-  //Display the result
   resultDisplayArea.textContent = resultText;
 };
 
 const imageProcessingWorker = new Worker('web_worker.js');
-
-// Function to handle messages from the worker, including processed images
 imageProcessingWorker.onmessage = async function(event) {
   const { action, processedDataUrl } = event.data;
   if (action === 'imageProcessed') {
-    displayImage(processedDataUrl); // Display the processed image
-    detectQRCodeFromProcessedDataUrl(processedDataUrl); // Immediately proceed to QR code detection with the processed image
+    displayImage(processedDataUrl); 
+    detectQRCodeFromProcessedDataUrl(processedDataUrl);
   }
 };
 
@@ -40,7 +37,7 @@ const processImageForQRCode = (dataUrl) => {
   displayImage(dataUrl); // Optionally display the original image or a loading indicator
   displayResult('Processing image...');
 
-  // Convert the data URL to a blob and send it to the worker for processing
+  // Convert the data URL to a blob and send it to the worker for processing(web_worker.js)
   fetch(dataUrl)
     .then(response => response.blob())
     .then(blob => {
@@ -54,7 +51,7 @@ const processImageForQRCode = (dataUrl) => {
 };
 
 // Helper function to initiate QR code detection on a processed image
-async function detectQRCodeFromProcessedDataUrl(processedDataUrl) {
+const detectQRCodeFromProcessedDataUrl = async (processedDataUrl) => {
   try {
     const imageBitmap = await createImageBitmap(await (await fetch(processedDataUrl)).blob());
     await qrcode.ready();
@@ -81,75 +78,95 @@ const resetPreviousWork = () => {
   imageInput.value = '';
 }
 
-// Screen are capture logic - Start
-let startX, startY, endX, endY;
-const selectionRectangle = document.createElement('div');
-selectionRectangle.className = 'selection-rectangle';
-document.body.appendChild(selectionRectangle);
+function cropImage(dataUrl, coords) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = coords.width;
+      canvas.height = coords.height;
+      const ctx = canvas.getContext('2d');
 
-const updateSelectionRectangle = () => {
-  const x = Math.min(startX, endX);
-  const y = Math.min(startY, endY);
-  const width = Math.abs(startX - endX);
-  const height = Math.abs(startY - endY);
-  selectionRectangle.style.left = `${x}px`;
-  selectionRectangle.style.top = `${y}px`;
-  selectionRectangle.style.width = `${width}px`;
-  selectionRectangle.style.height = `${height}px`;
-};
+      ctx.drawImage(image, coords.x, coords.y, coords.width, coords.height, 0, 0, coords.width, coords.height);
+
+      resolve(canvas.toDataURL());
+    };
+    image.onerror = reject;
+    image.src = dataUrl;
+  });
+}
+
 
 scanButton.addEventListener('click', () => {
   resetPreviousWork();
-  document.body.appendChild(selectionRectangle);
-  let isDrawing = false; // Allow users to draw a rectangle on the screen
 
-  const startDrawing = (e) => {
-    isDrawing = true;
-    startX = e.pageX;
-    startY = e.pageY;
-    selectionRectangle.style.display = 'block';
-  };
-
-  const stopDrawing = () => {
-    if (isDrawing) {
-      document.removeEventListener('mousemove', onMouseMove);
-      isDrawing = false;
-      captureSelectedArea();
+  chrome.runtime.sendMessage({ action: 'enableAreaSelection' }, (response) => {
+    if (response && response.success) {
+      console.log('Area selection initiated.');
+    } else {
+      console.error('Error during area selection:', response.error);
+      displayResult('Error during area selection')
     }
-  };
+  });
+});
 
-  const onMouseMove = (e) => {
-    if (!isDrawing) return;
-    endX = e.pageX;
-    endY = e.pageY;
-    updateSelectionRectangle();
+document.getElementById('scan-btn').addEventListener('click', function() {
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    chrome.tabs.sendMessage(tabs[0].id, {action: "selectionDiv"});
+  });
+});
+
+
+document.body.appendChild(selectionDiv);
+let isDrawing = false; // Allow users to draw a rectangle on the screen
+
+const startDrawing = (e) => {
+  isDrawing = true;
+  startX = e.pageX;
+  startY = e.pageY;
+  selectionDiv.style.display = 'block';
+};
+
+const stopDrawing = () => {
+  if (isDrawing) {
+    document.removeEventListener('mousemove', onMouseMove);
+    isDrawing = false;
+    captureSelectedArea();
   }
+};
+
+const onMouseMove = (e) => {
+  if (!isDrawing) return;
+  endX = e.pageX;
+  endY = e.pageY;
+  updateSelectionRectangle();
+}
   
-  const captureSelectedArea = () => {
-    const rect = selectionRectangle.getBoundingClientRect();
-    html2canvas(document.body, {
-      x: rect.left + window.scrollX,
-      y: rect.top + window.scrollY, // Corrected from `rect.left` to `rect.top` for the `y` property
-      width: rect.width,
-      height: rect.height,
-      useCORS: true,
-      logging: true,
-      letterRendering: 1,
-      allowTaint: false,
-    }).then((canvas) => {
-      const dataUrl = canvas.toDataURL(); // Corrected method name
-      processImageForQRCode(dataUrl); // process the captured image immediately
-      selectionRectangle.style.display = 'none'; // Hide after capturing
-    }).catch((error) => {
-      console.error('Error capturing area:', error);
-    });
+const captureSelectedArea = async () => {
+  const rect = selectionDiv.getBoundingClientRect();
+  html2canvas(document.body, {
+    x: rect.left + window.scrollX,
+    y: rect.top + window.scrollY, // Corrected from `rect.left` to `rect.top` for the `y` property
+    width: rect.width,
+    height: rect.height,
+    useCORS: true,
+    logging: true,
+    letterRendering: 1,
+    allowTaint: false,
+  }).then((canvas) => {
+    const dataUrl = canvas.toDataURL(); // Corrected method name
+    processImageForQRCode(dataUrl); // process the captured image immediately
+    selectionDiv.style.display = 'none'; // Hide after capturing
+  }).catch((error) => {
+    console.error('Error capturing area:', error);
+  });
 };
 
 
-  document.addEventListener('mousedown', startDrawing, { once: true });
-  document.addEventListener('mouseup', stopDrawing, { once: true });
-  document.addEventListener('mousemove', onMouseMove);
-});
+document.addEventListener('mousedown', startDrawing, { once: true });
+document.addEventListener('mouseup', stopDrawing, { once: true });
+document.addEventListener('mousemove', onMouseMove);
+
     
 // Event listener for the 'Local' button to trigger the hidden file input
 localButton.addEventListener('click', () => {

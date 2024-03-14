@@ -67,12 +67,12 @@ function adjustContrast(imageData, contrast = 1.5) {
 function applyEdgeDetection(imageData) {
   const width = imageData.width;
   const height = imageData.height; 
-  const sobelKenrelX = [
+  const sobelKernelX = [
     [-1, -2, -1],
     [0, 0, 0],
     [1, 2, 1]
   ];
-  const sobelKenrelY = [
+  const sobelKernelY = [
     [-1, -2, -1],
     [0, 0, 0],
     [1, 2, 1]
@@ -95,8 +95,8 @@ function applyEdgeDetection(imageData) {
       for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
           const intensity = getPixelIntensity(x + dx, y + dy);
-          gx += intensity * sobelKenrelX[dy + 1][dx + 1];
-          gy += intensity * sobelKenrelY[dy + 1][dx + 1];
+          gx += intensity * sobelKernelX[dy + 1][dx + 1];
+          gy += intensity * sobelKernelY[dy + 1][dx + 1];
         }
       }
       const magnitude = Math.sqrt(gx * gx + gy * gy) >>> 0;

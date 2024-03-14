@@ -31,12 +31,8 @@
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "data/window/index.html"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "resources": ["data/window/index.html", "data/window/web_worker.js", "data/window/html2canvas.min.js"],
+      "matches": ["<all_urls>"]
     }
   ],
   "icons": {
