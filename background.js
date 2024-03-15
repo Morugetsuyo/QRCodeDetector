@@ -35,6 +35,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       checkUserSelectionStatus(true);
       console.log('checking selection status. This functionality needs to be fully implemented.');
       return true; 
+
+    case 'captureDataUrl':
+      console.log('Captured Data URL received', request.dataUrl);
+      sendResponse({ imageSrc: dataUrl});
+      return true;
   }
 });
 

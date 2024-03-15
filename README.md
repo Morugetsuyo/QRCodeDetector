@@ -53,5 +53,6 @@ Updates:
 2.0.1: Implemented content script and functions for caturing specific tab area.
 2.1.1: test ver. (communication check between index.js and contentScript.js)
 2.2.1: Optimization 
+2.5.1: Fix link chrome.tab.sendMessage & chrome.tab.onMessage flow
 
 https://www.goodreads.com/book/show/4865.How_to_Win_Friends_and_Influence_People
