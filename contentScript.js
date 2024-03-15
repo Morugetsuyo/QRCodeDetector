@@ -12,7 +12,7 @@ function createSelectionDiv() {
         Object.assign(selectionDiv.style, {
             position: 'absolute',
             zIndex: '2147483647', // Ensure it's on top
-            border: '1px solid #5eeb57',
+            border: '2px solid #5eeb57',
             display: 'none' // Initially hidden
         });
     }
@@ -100,8 +100,8 @@ function captureSelectedArea() {
 }
 
 // Listen for messages from the background script
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'activateSelectionMode') {
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+    if (request.action === 'initiateAreaSelection') {
         activateSelectionMode();
         sendResponse({status: 'Selection mode activated'});
     }

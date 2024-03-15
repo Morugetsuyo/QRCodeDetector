@@ -87,10 +87,10 @@ scanButton.addEventListener('click', () => {
 // Event listener for the 'Local' button to trigger the hidden file input
 localButton.addEventListener('click', () => {
   resetPreviousWork();
-  document.getElementById('image-Input').click(); // Simulate a click on the hidden file input
+  imageInput.click(); // Simulate a click on the hidden file input
 });
     
-document.getElementById('image-input').addEventListener('change', (event) => {
+imageInput.addEventListener('change', (event) => {
   const file = event.target.files[0];
   if (file) {
     const reader = new FileReader();

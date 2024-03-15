@@ -51,6 +51,7 @@ function initiateAreaSelection(tabId, sendResponse) {
       sendResponse({ success: true });
     }
   });
+  return true;
 }
 
 function setUserHasCompletedSelection(completed) {
