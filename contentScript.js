@@ -1,89 +1,108 @@
 'use strict';
 
-chrome.runtime.onMessage.addEventListener(function(request, _sender, _sendResponse) {
-  if(request.action === "selectionDiv") {
-    if (selectionDiv.style.display === 'block') {
-      selectionDiv.style.display = 'none';
-    } else {
-      selectionDiv.style.display = 'block';
+let selectionDiv;
+let startX, startY; // Starting coordinates of the selection
+let isSelecting = false;
+
+// Function to create and style the selectionDiv if it doesn't already exist
+function createSelectionDiv() {
+    if (!selectionDiv) {
+        selectionDiv = document.createElement('div');
+        document.body.appendChild(selectionDiv);
+        Object.assign(selectionDiv.style, {
+            position: 'absolute',
+            zIndex: '2147483647', // Ensure it's on top
+            border: '1px solid #5eeb57',
+            display: 'none' // Initially hidden
+        });
     }
-    _sendResponse({status: "success"});
-  }
-});
+}
 
-let selectionDiv = document.createElement('div');
-document.body.appendChild(selectionDiv);
-Object.assign(selectionDiv.style, {
-  position: 'absolute',
-  zIndex: '2147483647', // Ensure it's on top
-  border: '1px soild #5eeb57',
-  display: 'none'
-});
-
-let startX, startY, isSelecting = false;
-let selectionModeActive = false;
-
+// Function to start the selection process
 function activateSelectionMode() {
-  selectionModeActive = true;
+    createSelectionDiv(); // Ensure the selectionDiv exists
+
+    document.addEventListener('mousedown', startDrawing);
+    document.addEventListener('mouseup', stopDrawing);
+    document.addEventListener('mousemove', onMouseMove);
+
+    console.log('Selection mode activated');
 }
 
+// Function to clean up event listeners and hide the selectionDiv
 function deactivateSelectionMode() {
-  selectionModeActive = false;
+    if (selectionDiv) {
+        selectionDiv.style.display = 'none';
+    }
+
+    document.removeEventListener('mousedown', startDrawing);
+    document.removeEventListener('mouseup', stopDrawing);
+    document.removeEventListener('mousemove', onMouseMove);
+
+    console.log('Selection mode deactivated');
 }
 
-document.addEventListener('mousedown', function (e) {
-  if (!selectionModeActive) return;
-  // Initialize the selection rectangle's position and size
-  startX = e.pageX;
-  startY = e.pageY;
-  Object.assign(selectionDiv.style, {
-    left: startX + 'px',
-    top: startY + 'px',
-    width: '0px',
-    height: '0px',
-    display: 'block'
-  });
-  isSelecting = true;
-});
+function startDrawing(e) {
+    isSelecting = true;
+    startX = e.pageX;
+    startY = e.pageY;
+    updateSelectionDiv(startX, startY, 0, 0); // Initialize the div size and position
+    selectionDiv.style.display = 'block';
+}
 
-document.addEventListener('mousemove', function (e) {
-  if (!selectionModeActive || !isSelecting) return;
-  // Update the selection rectangle's size as the mouse moves
-  let currentX = e.pageX;
-  let currentY = e.pageY;
-  let width = Math.abs(currentX - startX);
-  let height = Math.abs(currentY - startY);
-  Object.assign(selectionDiv.style, {
-    left: Math.min(currentX, startX) + 'px',
-    top: Math.min(currentY, startY) + 'px',
-    width: width + 'px',
-    height: height + 'px'
-  });
-});
+function stopDrawing() {
+    if (isSelecting) {
+        isSelecting = false;
+        captureSelectedArea();
+    }
+}
 
-document.addEventListener('mouseup', function () {
-  if (!selectionModeActive || !isSelecting) return;
-  isSelecting = false;
-  selectionDiv.style.display = 'none'; // Hide the selection rectangle
+function onMouseMove(e) {
+    if (isSelecting) {
+        const width = e.pageX - startX;
+        const height = e.pageY - startY;
+        updateSelectionDiv(startX, startY, width, height);
+    }
+}
 
-  if (parseInt(selectionDiv.style.width, 10) > 0 && parseInt(selectionDiv.style.height, 10) > 0) {
-    chrome.runtime.sendMessage({
-      action: 'areaSelected',
-      coords: {
-        x: parseInt(selectionDiv.style.left, 10),
-        y: parseInt(selectionDiv.style.top, 10),
-        width: parseInt(selectionDiv.style.width, 10),
-        height: parseInt(selectionDiv.style.height, 10)
-      }
+// Function to update the selectionDiv's position and size
+function updateSelectionDiv(x, y, width, height) {
+    Object.assign(selectionDiv.style, {
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${Math.abs(width)}px`,
+        height: `${Math.abs(height)}px`
     });
-  }
+}
 
-  deactivateSelectionMode();
+// Function to capture the selected area using html2canvas
+function captureSelectedArea() {
+    html2canvas(document.body, {
+        x: selectionDiv.offsetLeft,
+        y: selectionDiv.offsetTop,
+        width: selectionDiv.offsetWidth,
+        height: selectionDiv.offsetHeight,
+        useCORS: true, // For cross-origin images
+        logging: true,
+        scale: 1 // Adjust scale if necessary
+    }).then(canvas => {
+        const dataUrl = canvas.toDataURL();
+        console.log('Area captured');
 
-  // Reset the selectionDiv for the next use
-  Object.assign(selectionDiv.style, {
-    width: '0px',
-    height: '0px',
-    display: 'none'
-  });
+        // Send the data URL back for further processing
+        chrome.runtime.sendMessage({action: 'capturedDataUrl', dataUrl: dataUrl});
+
+        deactivateSelectionMode(); // Deactivate selection mode after capturing
+    }).catch(error => {
+        console.error('Error capturing selected area:', error);
+        deactivateSelectionMode();
+    });
+}
+
+// Listen for messages from the background script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'activateSelectionMode') {
+        activateSelectionMode();
+        sendResponse({status: 'Selection mode activated'});
+    }
 });

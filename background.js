@@ -9,7 +9,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ error: chrome.runtime.lastError.message });
         } else {
           sendResponse({ imageSrc: dataUrl });
-          console.log('Captured tab image.');
         }
       });
       return true; // Indicates async response for sendResponse
@@ -18,7 +17,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if (sender.tab?.id) {
         initiateAreaSelection(sender.tab.id, sendResponse);
       } else {
-        sendResponse({ error: 'No active tab ID found.' });
+        sendResponse({error: 'No active tab ID found for area selection.'});
       }
       return true; // Indicates async response for sendResponse
 
@@ -29,14 +28,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     case 'areaSelectionCompleted':
       setUserHasCompletedSelection(true);
-      sendResponse({ status: 'success', message: 'Area selection completion status updated.' });
+      console.log('Area selection reported as completed.');
       return true;
 
     case 'checkSelectionStatus':
-      checkUserSelectionStatus((completed) => {
-        sendResponse({ status: 'success', selectionCompleted: completed });
-      });
-      return true; // Indicates async response for sendResponse
+      checkUserSelectionStatus(true);
+      console.log('checking selection status. This functionality needs to be fully implemented.');
+      return true; 
   }
 });
 
@@ -56,22 +54,22 @@ function initiateAreaSelection(tabId, sendResponse) {
 }
 
 function setUserHasCompletedSelection(completed) {
-  chrome.storage.local.set({ 'selectionCompleted': completed }, () => {
-    if (chrome.runtime.lastError) {
-      console.error(`Error setting selectionCompleted: ${chrome.runtime.lastError}`);
+  chrome.storage.local.set({ 'selectionCompleted': completed }, (error) => {
+    if (error) {
+      console.error(`Error setting selectionCompleted: ${error}`);
     } else {
       console.log('Selection completion status updated successfully.');
     }
   });
 }
 
-function checkUserSelectionStatus(callback) {
+function checkUserSelectionStatus(sendResponse) {
   chrome.storage.local.get('selectionCompleted', (result) => {
     if (chrome.runtime.lastError) {
       console.error(`Error retrieving selectionCompleted: ${chrome.runtime.lastError}`);
-      callback(false); // Default to false on error
+      sendResponse({ selectionCompleted: false});
     } else {
-      callback(result.selectionCompleted === true);
+      sendResponse({ selectionCompleted: result.selectionCompleted === true });
     }
   });
 }
