@@ -3,6 +3,7 @@
 let selectionDiv;
 let startX, startY, isSelecting = false;
 
+// Function to create and style the selectionDiv if it doesn't already exist
 function createSelectionDiv() {
     if (!selectionDiv) {
         selectionDiv = document.createElement('div');
@@ -10,20 +11,23 @@ function createSelectionDiv() {
         document.body.appendChild(selectionDiv);
         Object.assign(selectionDiv.style, {
             position: 'absolute',
-            zIndex: '2147483647',
+            zIndex: '2147483647', // Ensure it's on top
             border: '2px solid #5eeb57',
-            display: 'none',
+            display: 'none' // Initially hidden
         });
     }
 }
 
+
+
+// Function to update the selectionDiv's position and size
 function updateSelectionDiv(x, y, width, height) {
     Object.assign(selectionDiv.style, {
         left: `${x}px`,
         top: `${y}px`,
-        width: `${width}px`,
-        height: `${height}px`,
-        display: 'block', // Make sure the div is visible
+        width: `${Math.abs(width)}px`,
+        height: `${Math.abs(height)}px`,
+        display: 'block', // Make div visible
     });
 }
 
@@ -31,8 +35,9 @@ function clearSelectionDiv() {
     selectionDiv.style.display = 'none'; // Hide the selection div
 }
 
+// Function to start the selection process
 function activateSelectionMode() {
-    createSelectionDiv();
+    createSelectionDiv(); // Ensure the selectionDiv exists
 
     document.addEventListener('mousedown', (e) => {
         isSelecting = true;
@@ -53,13 +58,15 @@ function activateSelectionMode() {
         if (isSelecting) {
             isSelecting = false;
             captureSelectedArea();
-            // Clear selection after capture
+            // Clear selection after capturing
             clearSelectionDiv();
         }
     });
 
     console.log('Selection mode activated');
 }
+
+// Function to clean up event listeners and hide the selectionDiv
 
 function captureSelectedArea() {
     html2canvas(document.body, {
@@ -73,7 +80,7 @@ function captureSelectedArea() {
     }).then(canvas => {
         const dataUrl = canvas.toDataURL();
         console.log('Area captured');
-        chrome.runtime.sendMessage({action: 'capturedDataUrl', dataUrl: dataUrl});
+        chrome.runtime.sendMessage({ action: 'captureDataUrl', dataUrl: dataUrl });
     }).catch(error => {
         console.error('Error capturing selected area:', error);
     });

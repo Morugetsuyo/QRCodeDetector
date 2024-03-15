@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function initiateAreaSelection(tabId, sendResponse) {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
-    files: ['data/window/contentScript.js']
+    files: ['contentScript.js']
   }, () => {
     if (chrome.runtime.lastError) {
       console.error('Error injecting content script for area selection:', chrome.runtime.lastError.message);
