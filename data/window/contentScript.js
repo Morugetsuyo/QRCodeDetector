@@ -1,13 +1,13 @@
 'use strict';
 
 let selectionDiv;
-let startX, startY; // Starting coordinates of the selection
-let isSelecting = false;
+let startX, startY, isSelecting = false;
 
 // Function to create and style the selectionDiv if it doesn't already exist
 function createSelectionDiv() {
     if (!selectionDiv) {
         selectionDiv = document.createElement('div');
+        selectionDiv.className = 'selection-rectangle'; // Use a class for styling
         document.body.appendChild(selectionDiv);
         Object.assign(selectionDiv.style, {
             position: 'absolute',
@@ -18,15 +18,33 @@ function createSelectionDiv() {
     }
 }
 
+
+
+// Function to update the selectionDiv's position and size
+function updateSelectionDiv(x, y, width, height) {
+    Object.assign(selectionDiv.style, {
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${Math.abs(width)}px`,
+        height: `${Math.abs(height)}px`,
+        display: 'block', // Make div visible
+    });
+}
+
+function clearSelectionDiv() {
+    selectionDiv.style.display = 'none'; // Hide the selection div
+}
+
 // Function to start the selection process
 function activateSelectionMode() {
     createSelectionDiv(); // Ensure the selectionDiv exists
 
-    document.addEventListener('mousedown', startDrawing);
-    document.addEventListener('mouseup', stopDrawing);
-    document.addEventListener('mousemove', onMouseMove);
-
-    console.log('Selection mode activated');
+    document.addEventListener('mousedown', (e) => {
+        isSelecting = true;
+        startX = e.pageX;
+        startY = e.pageY;
+        updateSelectionDiv(startX, startY, 0, 0);
+    });
 }
 
 // Function to clean up event listeners and hide the selectionDiv
@@ -65,15 +83,7 @@ function onMouseMove(e) {
     }
 }
 
-// Function to update the selectionDiv's position and size
-function updateSelectionDiv(x, y, width, height) {
-    Object.assign(selectionDiv.style, {
-        left: `${x}px`,
-        top: `${y}px`,
-        width: `${Math.abs(width)}px`,
-        height: `${Math.abs(height)}px`
-    });
-}
+
 
 // Function to capture the selected area using html2canvas
 function captureSelectedArea() {
@@ -88,7 +98,6 @@ function captureSelectedArea() {
     }).then(canvas => {
         const dataUrl = canvas.toDataURL();
         console.log('Area captured');
-
         // Send the data URL back for further processing
         chrome.runtime.sendMessage({action: 'capturedDataUrl', dataUrl: dataUrl});
 
