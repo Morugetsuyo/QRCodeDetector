@@ -19,7 +19,6 @@ function createSelectionDiv() {
 }
 
 
-
 // Function to update the selectionDiv's position and size
 function updateSelectionDiv(x, y, width, height) {
     Object.assign(selectionDiv.style, {
@@ -87,7 +86,7 @@ function captureSelectedArea() {
 }
 
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
-    if (request.action === 'initiateAreaSelection') {
+    if (request.action === 'activateSelectionMode') {
         activateSelectionMode();
         sendResponse({status: 'Selection mode activated'});
     }

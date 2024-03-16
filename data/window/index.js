@@ -81,7 +81,7 @@ const resetPreviousWork = () => {
 // Event listeners for UI interactions
 scanButton.addEventListener('click', () => {
   resetPreviousWork();
-  chrome.runtime.sendMessage({ action: 'initiateAreaSelection' });
+  chrome.runtime.sendMessage({ action: 'captureTab' });
 });
 
 // Event listener for the 'Local' button to trigger the hidden file input

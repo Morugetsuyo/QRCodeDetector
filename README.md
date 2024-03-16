@@ -21,7 +21,7 @@ TCS_QR(ZBar_dev) - Win
         ├── web_worker.js
         ├── Backup(deprecated)
         │   ├── index_backup.js
-        │   └── QRCode_backup.js        │
+        │   └── QRCode_backup.js 
         │
         └── ZBar
             ├── README.md

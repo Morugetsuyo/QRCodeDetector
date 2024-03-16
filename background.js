@@ -8,17 +8,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           console.error('Error capturing tab:', chrome.runtime.lastError.message);
           sendResponse({ error: chrome.runtime.lastError.message });
         } else {
+          // process or store the captured image here
           sendResponse({ imageSrc: dataUrl });
+          if (sender.tab?.id) {
+            // initiateAreaSelection(sender.tab.id);
+            initiateAreaSelection(sender.tab.id, sendResponse);
+          }
         }
       });
-      return true; // Indicates async response for sendResponse
-
-    case 'initiateAreaSelection':
-      if (sender.tab?.id) {
-        initiateAreaSelection(sender.tab.id, sendResponse);
-      } else {
-        sendResponse({error: 'No active tab ID found for area selection.'});
-      }
       return true; // Indicates async response for sendResponse
 
     case 'processLocalImage':
@@ -26,23 +23,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ message: 'Local image processed' });
       return true;
 
-    case 'areaSelectionCompleted':
-      setUserHasCompletedSelection(true);
-      console.log('Area selection reported as completed.');
-      return true;
-
-    case 'checkSelectionStatus':
-      checkUserSelectionStatus(true);
-      console.log('checking selection status. This functionality needs to be fully implemented.');
-      return true; 
-
     case 'captureDataUrl':
       console.log('Captured Data URL received', request.dataUrl);
-      sendResponse({ imageSrc: dataUrl});
+      sendResponse({ imageSrc: request.dataUrl});
       return true;
   }
 });
 
+// function initiateAreaSelection(tabId, sendResponse) {
 function initiateAreaSelection(tabId, sendResponse) {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
@@ -50,32 +38,21 @@ function initiateAreaSelection(tabId, sendResponse) {
   }, () => {
     if (chrome.runtime.lastError) {
       console.error('Error injecting content script for area selection:', chrome.runtime.lastError.message);
-      sendResponse({ error: chrome.runtime.lastError.message });
+      sendResponse({ success: false, error: chrome.runtime.lastError.message });
     } else {
       console.log('Content script injected for area selection.');
-      sendResponse({ success: true });
+      chrome.tabs.sendMessage(tabId, { action: 'activateSelectionMode' }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Error sending message to content script:', chrome.runtime.lastError.message);
+          sendResponse({ success: false, error: chrome.runtime.lastError.message });
+        } else {
+          console.log('Area selection mode activated', response);
+          sendResponse({ success: true });
+        }
+      });
     }
   });
-  return true;
+  return true; // Indicates async response for sendResponse
 }
 
-function setUserHasCompletedSelection(completed) {
-  chrome.storage.local.set({ 'selectionCompleted': completed }, (error) => {
-    if (error) {
-      console.error(`Error setting selectionCompleted: ${error}`);
-    } else {
-      console.log('Selection completion status updated successfully.');
-    }
-  });
-}
 
-function checkUserSelectionStatus(sendResponse) {
-  chrome.storage.local.get('selectionCompleted', (result) => {
-    if (chrome.runtime.lastError) {
-      console.error(`Error retrieving selectionCompleted: ${chrome.runtime.lastError}`);
-      sendResponse({ selectionCompleted: false});
-    } else {
-      sendResponse({ selectionCompleted: result.selectionCompleted === true });
-    }
-  });
-}
