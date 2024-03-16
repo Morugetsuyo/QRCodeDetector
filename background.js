@@ -8,10 +8,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           console.error('Error capturing tab:', chrome.runtime.lastError.message);
           sendResponse({ error: chrome.runtime.lastError.message });
         } else {
-          // process or store the captured image here
           sendResponse({ imageSrc: dataUrl });
           if (sender.tab?.id) {
-            // initiateAreaSelection(sender.tab.id);
             initiateAreaSelection(sender.tab.id, sendResponse);
           }
         }
@@ -25,12 +23,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     case 'captureDataUrl':
       console.log('Captured Data URL received', request.dataUrl);
-      sendResponse({ imageSrc: request.dataUrl});
+      processImageForQRCode(request.dataUrl); // Send the captured and cropped image for further processing
+      sendResponse({ success: true });
       return true;
   }
 });
 
-// function initiateAreaSelection(tabId, sendResponse) {
 function initiateAreaSelection(tabId, sendResponse) {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
@@ -54,5 +52,3 @@ function initiateAreaSelection(tabId, sendResponse) {
   });
   return true; // Indicates async response for sendResponse
 }
-
-
