@@ -3,47 +3,62 @@
 let selectionDiv;
 let startX, startY, isSelecting = false;
 
-// Function to create and style the selectionDiv if it doesn't already exist
 function createSelectionDiv() {
     if (!selectionDiv) {
         selectionDiv = document.createElement('div');
-        selectionDiv.className = 'selection-rectangle'; // Use a class for styling
+        selectionDiv.id = 'selection-rectangle';
         document.body.appendChild(selectionDiv);
-        Object.assign(selectionDiv.style, {
-            position: 'absolute',
-            zIndex: '2147483647', // Ensure it's on top
-            border: '2px solid #5eeb57',
-            display: 'none' // Initially hidden
-        });
+        selectionDiv.style.position = 'absolute';
+        selectionDiv.style.zIndex = 2147483647;
+        selectionDiv.style.border = '2px dashed #5eeb57';
+        selectionDiv.style.display = 'none';
     }
 }
 
-
-// Function to update the selectionDiv's position and size
 function updateSelectionDiv(x, y, width, height) {
-    Object.assign(selectionDiv.style, {
-        left: `${x}px`,
-        top: `${y}px`,
-        width: `${Math.abs(width)}px`,
-        height: `${Math.abs(height)}px`,
-        display: 'block', // Make div visible
-    });
+    selectionDiv.style.left = `${x}px`;
+    selectionDiv.style.top = `${y}px`;
+    selectionDiv.style.width = `${Math.abs(width)}px`;
+    selectionDiv.style.height = `${Math.abs(height)}px`;
+    selectionDiv.style.display = 'block';
 }
 
 function clearSelectionDiv() {
-    selectionDiv.style.display = 'none'; // Hide the selection div
+    selectionDiv.style.display = 'none';
 }
 
-// Function to start the selection process
+function captureSelectedArea() {
+    if (!selectionDiv) {
+        return;
+    }
+
+    html2canvas(document.body, {
+        x: window.scrollX + selectionDiv.offsetLeft,
+        y: window.scrollY + selectionDiv.offsetTop,
+        width: selectionDiv.offsetWidth,
+        height: selectionDiv.offsetHeight,
+        useCORS: true,
+        logging: true,
+        scale: 1,
+        windowWidth: document.documentElement.offsetWidth,
+        windowHeight: document.documentElement.offsetHeight
+    }).then(canvas => {
+        const dataUrl = canvas.toDataURL('image/png');
+        chrome.runtime.sendMessage({ action: 'captureDataUrl', dataUrl: dataUrl });
+    }).catch(error => {
+        console.error('Error capturing selected area:', error);
+    });
+}
+
 function activateSelectionMode() {
-    createSelectionDiv(); // Ensure the selectionDiv exists
+    createSelectionDiv();
 
     document.addEventListener('mousedown', (e) => {
         isSelecting = true;
         startX = e.pageX;
         startY = e.pageY;
         updateSelectionDiv(startX, startY, 0, 0);
-    });
+    }, { once: true });
 
     document.addEventListener('mousemove', (e) => {
         if (isSelecting) {
@@ -51,41 +66,19 @@ function activateSelectionMode() {
             const height = e.pageY - startY;
             updateSelectionDiv(startX, startY, width, height);
         }
-    });
+    }, { once: true });
 
-    document.addEventListener('mouseup', () => {
+    document.addEventListener('mouseup', (e) => {
         if (isSelecting) {
             isSelecting = false;
             captureSelectedArea();
-            // Clear selection after capturing
             clearSelectionDiv();
         }
-    });
-
-    console.log('Selection mode activated');
+        document.removeEventListener('mousemove', this);
+    }, { once: true });
 }
 
-// Function to clean up event listeners and hide the selectionDiv
-
-function captureSelectedArea() {
-    html2canvas(document.body, {
-        x: selectionDiv.offsetLeft,
-        y: selectionDiv.offsetTop,
-        width: selectionDiv.offsetWidth,
-        height: selectionDiv.offsetHeight,
-        useCORS: true,
-        logging: true,
-        scale: 1
-    }).then(canvas => {
-        const dataUrl = canvas.toDataURL();
-        console.log('Area captured');
-        chrome.runtime.sendMessage({ action: 'captureDataUrl', dataUrl: dataUrl });
-    }).catch(error => {
-        console.error('Error capturing selected area:', error);
-    });
-}
-
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'activateSelectionMode') {
         activateSelectionMode();
         sendResponse({status: 'Selection mode activated'});

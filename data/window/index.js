@@ -81,8 +81,23 @@ const resetPreviousWork = () => {
 // Event listeners for UI interactions
 scanButton.addEventListener('click', () => {
   resetPreviousWork();
-  chrome.runtime.sendMessage({ action: 'captureTab' });
+  chrome.runtime.sendMessage({action: "initiateCaptureAndSelection"}, (response) => {
+    console.log("Response from background:", response);
+  });
 });
+
+/* scanButton.addEventListener('click', () => {
+  resetPreviousWork();
+  chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message); 
+    } else {
+      chrome.runtime.sendMessage({action: "capturedDataUrl", imageSrc: dataUrl}, (response) => {
+        console.log("Response from background:", response);
+      });
+    }  
+  });
+}); */
 
 // Event listener for the 'Local' button to trigger the hidden file input
 localButton.addEventListener('click', () => {

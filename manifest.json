@@ -4,10 +4,10 @@
   "name": "QR Code Detector dev_ver-var OS compatible model",
   "description": "QR Code Detector dev_ver-var OS compatible model",
   "permissions": [
-    "storage",
-    "contextMenus",
     "activeTab",
     "tabs",
+    "storage",
+    "contextMenus",
     "scripting"
   ],
   "optional_permissions": [
@@ -31,7 +31,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["data/window/index.html", "data/window/web_worker.js", "data/window/html2canvas.min.js"],
+      "resources": ["data/window/index.html", "data/window/web_worker.js", "data/window/html2canvas.min.js", "background.js", "contentScript.js"],
       "matches": ["<all_urls>"]
     }
   ],
