@@ -52,7 +52,7 @@ const processImageForQRCode = (dataUrl) => {
 };
 
 // Helper function to initiate QR code detection on a processed image
-const detectQRCodeFromProcessedDataUrl = async (processedDataUrl) => {
+async function detectQRCodeFromProcessedDataUrl(processedDataUrl) {
   try {
     const imageBitmap = await createImageBitmap(await (await fetch(processedDataUrl)).blob());
     await qrcode.ready();
@@ -78,26 +78,14 @@ const resetPreviousWork = () => {
   imageInput.value = '';
 };
 
-// Event listeners for UI interactions
-scanButton.addEventListener('click', () => {
+scanButton.addEventListener('click', function() {
   resetPreviousWork();
-  chrome.runtime.sendMessage({action: "initiateCaptureAndSelection"}, (response) => {
-    console.log("Response from background:", response);
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    chrome.runtime.sendMessage({action: "injectScript"}, (response) => {
+      console.log("Response from background:", response);
+    });
   });
 });
-
-/* scanButton.addEventListener('click', () => {
-  resetPreviousWork();
-  chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
-    if (chrome.runtime.lastError) {
-      console.error('Error capturing the visible tab: ', chrome.runtime.lastError.message); 
-    } else {
-      chrome.runtime.sendMessage({action: "capturedDataUrl", imageSrc: dataUrl}, (response) => {
-        console.log("Response from background:", response);
-      });
-    }  
-  });
-}); */
 
 // Event listener for the 'Local' button to trigger the hidden file input
 localButton.addEventListener('click', () => {
@@ -117,5 +105,7 @@ imageInput.addEventListener('change', (event) => {
     console.error('No file selected.');
   }
 });
+
+
 
 resetButton.addEventListener('click', resetPreviousWork);

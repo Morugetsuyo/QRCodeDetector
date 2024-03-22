@@ -20,18 +20,12 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["contentScript.js"]
-    }
-  ],
   "action": {
     "default_popup": "data/window/index.html"
   },
   "web_accessible_resources": [
     {
-      "resources": ["data/window/index.html", "data/window/web_worker.js", "data/window/html2canvas.min.js", "background.js", "contentScript.js"],
+      "resources": ["data/window/index.html", "data/window/web_worker.js", "data/window/src/html2canvas.min.js", "background.js", "data/window/contentScript.js", "data/window/ZBar/zbar.js", "data/window/ZBar/zbar.wams"],
       "matches": ["<all_urls>"]
     }
   ],

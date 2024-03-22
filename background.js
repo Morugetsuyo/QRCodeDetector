@@ -1,3 +1,4 @@
+/*
 'use strict';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -15,18 +16,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
       });
       return true; // Indicates async response
-
-    // Removed 'captureTab' case as it's no longer used
-
-    case 'processLocalImage':
-      console.log('Local image processed', request.dataUrl);
-      sendResponse({ message: 'Local image processed' });
-      return true;
-
-    case 'captureDataUrl':
-      console.log('Captured Data URL received', request.dataUrl);
-      processImageForQRCode(request.dataUrl); // Continue processing the image as before
-      return true;
   }
 });
 
@@ -50,3 +39,44 @@ function initiateAreaSelection(tabId) {
     }
   });
 }
+*/
+
+'use strict';
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "injectScript") {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      if (tabs.length > 0) {
+        // Inject html2canvas.min.js first
+        chrome.scripting.executeScript({
+          target: {tabId: tabs[0].id},
+          files: ['data/window/src/html2canvas.min.js']
+        }, () => {
+          if (chrome.runtime.lastError) {
+            console.error("Error injecting html2canvas: ", chrome.runtime.lastError.message);
+            return;
+          }
+          // After injecting html2canvas, inject content.js
+          chrome.scripting.executeScript({
+            target: {tabId: tabs[0].id},
+            files: ['data/window/contentScript.js']
+          }, () => {
+            if (chrome.runtime.lastError) {
+              console.error("Error injecting content.js: ", chrome.runtime.lastError.message);
+            } else {
+              // After successfully injecting content.js, send a message to initiate capture
+              chrome.tabs.sendMessage(tabs[0].id, {action: "initiatecapture"}, response => {
+                if(chrome.runtime.lastError) {
+                  console.error("Error initiating capture: ", chrome.runtime.lastError.message);
+                } else {
+                  console.log("Capture initiated: ", response);
+                }
+              });
+            }
+          });
+        });
+      }
+    });
+    return true;
+  } 
+});
