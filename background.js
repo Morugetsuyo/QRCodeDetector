@@ -59,10 +59,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
           // After injecting html2canvas, inject content.js
           chrome.scripting.executeScript({
             target: {tabId: tabs[0].id},
-            files: ['data/window/contentScript.js']
+            files: ['data/window/capture.js']
           }, () => {
             if (chrome.runtime.lastError) {
-              console.error("Error injecting content.js: ", chrome.runtime.lastError.message);
+              console.error("Error injecting capture.js: ", chrome.runtime.lastError.message);
             } else {
               // After successfully injecting content.js, send a message to initiate capture
               chrome.tabs.sendMessage(tabs[0].id, {action: "initiatecapture"}, response => {

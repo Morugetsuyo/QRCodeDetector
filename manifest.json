@@ -25,7 +25,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["data/window/index.html", "data/window/web_worker.js", "data/window/src/html2canvas.min.js", "background.js", "data/window/contentScript.js", "data/window/ZBar/zbar.js", "data/window/ZBar/zbar.wams"],
+      "resources": ["data/window/index.html", "data/window/web_worker.js", "data/window/src/html2canvas.min.js", "background.js", "data/window/capture.js", "data/window/ZBar/zbar.js", "data/window/ZBar/zbar.wams"],
       "matches": ["<all_urls>"]
     }
   ],
