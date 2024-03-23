@@ -7,7 +7,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               console.error('Error capturing the tab: ', chrome.runtime.lastError.message);
               sendResponse({success: false, error: "Failed to capture tab"});
           } else {
-              chrome.tabs.create({url: `image_display.html#${encodeURIComponent(imageUri)}`});
+              chrome.windows.create({url: `image_display.html#${encodeURIComponent(imageUri)}`});
               sendResponse({success: true});
           }
       });

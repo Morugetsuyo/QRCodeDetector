@@ -20,7 +20,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*", "<all_urls>"],
-      "js": ["js/jquery-3.7.1.min.js", "js/snipping.js", "popup/index.js", "popup/QRCode.js", "js/web_worker.js", "js/zbar.js"],
+      "js": ["js/jquery-3.7.1.min.js", "js/snipping.js", "popup/index.js", "popup/QRCode.js", "popup/web_worker.js", "js/zbar.js"],
       "run_at": "document_start"
     }
   ],

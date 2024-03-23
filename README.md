@@ -2,32 +2,25 @@
 Pilot Version 
 
 TCS_QR(ZBar_dev) - Win
-│
-├── background.js
+├── icons
+│   └── icons.png (deprecated)
+├── js
+│   ├── background.js
+│   ├── jquery-3.7.1.min.js
+│   ├── snipping.js
+│   ├── zbar.js
+│   └── zbar.wasm
+├── popup
+│   ├── index.html
+│   ├── index.js
+│   ├── QRCode.js
+│   ├── style.css
+│   └── web_worker.js
+├── .gitignore
+├── image_display.html
 ├── manifest.json
-├── popup.png
-├── readme.md
-└── data
-    │
-    ├── icons.png
-    └── window
-        │
-        ├── index.html
-        ├── capture.js
-        ├── index.js
-        ├── QRCode.js
-        ├── web_worker.js
-        ├── Backup(deprecated)
-        │   ├── index_backup.js
-        │   └── QRCode_backup.js 
-        │
-        ├── src
-        │    └── html2canvas.min.js
-        │
-        └── ZBar
-            ├── README.md
-            ├── zbar.js
-            └── zbar.wasm
+└── README.md
+
 
 
 Issues:

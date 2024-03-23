@@ -24,7 +24,7 @@ const displayResult = (resultText) => {
 };
 
 // Initialize an image processing web worker
-const imageProcessingWorker = new Worker('../js/web_worker.js');
+const imageProcessingWorker = new Worker("web_worker.js");
 imageProcessingWorker.onmessage = async function(event) {
   const { action, processedDataUrl } = event.data;
   if (action === 'imageProcessed') {
