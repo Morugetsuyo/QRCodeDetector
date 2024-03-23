@@ -104,17 +104,8 @@ function captureSelectedArea() {
         windowWidth: document.documentElement.offsetWidth,
         windowHeight: document.documentElement.offsetHeight
     }).then(canvas => {
-        return canvas.toBlob(blob => {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'capture.png';
-            link.click();
-
-            // Clean up
-            URL.revokeObjectURL(url);
-            link.remove();
-        });
+        const dataUrl = canvas.toDataURL('image/png');
+        chrome.runtime.sendMessage({action: "imageCaptured", dataUrl: dataUrl});
     });
 }
 

@@ -4,7 +4,6 @@ Pilot Version
 TCS_QR(ZBar_dev) - Win
 │
 ├── background.js
-├── contentScript.js
 ├── manifest.json
 ├── popup.png
 ├── readme.md
@@ -14,14 +13,16 @@ TCS_QR(ZBar_dev) - Win
     └── window
         │
         ├── index.html
-        ├── html2canvas.min.js
-        ├── capture.html
+        ├── capture.js
         ├── index.js
         ├── QRCode.js
         ├── web_worker.js
         ├── Backup(deprecated)
         │   ├── index_backup.js
         │   └── QRCode_backup.js 
+        │
+        ├── src
+        │    └── html2canvas.min.js
         │
         └── ZBar
             ├── README.md
@@ -54,5 +55,6 @@ Updates:
 2.1.1: test ver. (communication check between index.js and contentScript.js)
 2.2.1: Optimization 
 2.5.1: Fix link chrome.tab.sendMessage & chrome.tab.onMessage flow
+3.0.1: Implemented tab capturing code using html2canvas
 
 https://www.goodreads.com/book/show/4865.How_to_Win_Friends_and_Influence_People

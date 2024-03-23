@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "2.5.1",
+  "version": "3.0.1",
   "name": "QR Code Detector dev_ver-var OS compatible model",
   "description": "QR Code Detector dev_ver-var OS compatible model",
   "permissions": [
@@ -25,7 +25,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["data/window/index.html", "data/window/web_worker.js", "data/window/src/html2canvas.min.js", "background.js", "data/window/capture.js", "data/window/ZBar/zbar.js", "data/window/ZBar/zbar.wams"],
+      "resources": ["data/window/index.html", "data/window/web_worker.js", "", "background.js", "data/window/capture.js", "data/window/ZBar/zbar.js", "data/window/ZBar/zbar.wams"],
       "matches": ["<all_urls>"]
     }
   ],

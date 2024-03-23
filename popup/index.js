@@ -70,7 +70,6 @@ qrcode.on('detect', e => {
   displayResult(resultText);
 });
 
-// Function to reset previous work
 const resetPreviousWork = () => {
   imageDisplayArea.innerHTML = 'Image will be displayed here';
   resultDisplayArea.textContent = 'Result will be displayed here';
@@ -87,7 +86,14 @@ scanButton.addEventListener('click', function() {
   });
 });
 
-// Event listener for the 'Local' button to trigger the hidden file input
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "imageCaptured") {
+    const dataUrl = request.dataUrl;
+    processImageForQRCode(dataUrl);
+    sendResponse({status: "Image Processed"});
+  }
+});
+
 localButton.addEventListener('click', () => {
   resetPreviousWork();
   imageInput.click(); // Simulate a click on the hidden file input
