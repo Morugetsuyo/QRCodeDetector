@@ -1,0 +1,73 @@
+:root {
+    --primary-bg-color: rgba(10, 25, 47, 0.85);
+    --border-color: transparent;
+    --btn-bg-color: #0056b3;
+    --btn-hover-color: #004095;
+    --btn-text-color: #ffffff;
+    --overlay-text-color: #ccc;
+  }
+  
+  body {
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 300px;
+    font-family: 'Arial', sans-serif;
+    background-color: rgba(5, 15, 35, 0.85);
+    backdrop-filter: blur(5px);
+  }
+  .popup-container {
+    max-width: 100%;
+    box-shadow: 0 4px 8px rgba(0,0,0,1);
+    border-radius: 15px;
+    overflow: hidden;
+    padding: 5px 40px;
+    color: var(--btn-text-color);
+    background-color: rgba(10, 25, 70, 0.95);
+  }
+  .selection-rectangle {
+    border: 1px solid #5eeb57;
+    position: absolute;
+    pointer-events: none;
+  }
+  #image-display-area, #result-display-area {
+    border: 1px solid transparent;
+    width: 100%;
+    max-width: 280px;
+    height: 140px;
+    margin: 8px auto;
+    background-color: #003366;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: auto;
+    padding: 5px;
+    border-radius: 10px;      
+  }
+  #image-display-area img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .overlay-text {
+  color: var(--overlay-text-color);
+  }
+  button {
+    background-color: var(--btn-bg-color);
+    color: var(--btn-text-color);
+    border: none;
+    padding: 10px 20px;
+    margin: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: var(--btn-hover-color);
+  }
+  
