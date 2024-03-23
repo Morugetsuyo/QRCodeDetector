@@ -1,15 +1,17 @@
 {
   "manifest_version": 3,
-  "version": "3.3.1",
   "name": "QR Code Detector dev_ver-var OS compatible model",
+  "version": "3.5.1",
   "description": "QR Code Detector dev_ver-var OS compatible model",
-  "permissions": ["activeTab", "tabs", "storage", "contextMenus", "scripting"],
-  "optional_permissions": [
-    "declarativeNetRequestWithHostAccess",
-    "sidePanel"
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "contextMenus",
+    "scripting"
   ],
-  "optional_host_permissions": [
-    "*://*/*"
+  "host_permissions": [
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "js/background.js"
@@ -19,8 +21,14 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*", "<all_urls>"],
-      "js": ["js/jquery-3.7.1.min.js", "js/snipping.js", "popup/index.js", "popup/QRCode.js", "js/zbar.js"],
+      "matches": ["<all_urls>"],
+      "js": [
+        "js/jquery-3.7.1.min.js",
+        "js/snipping.js",
+        "popup/index.js",
+        "popup/QRCode.js",
+        "js/zbar.js"
+      ],
       "run_at": "document_start"
     }
   ],
