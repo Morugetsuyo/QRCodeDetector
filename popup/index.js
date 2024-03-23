@@ -64,7 +64,7 @@ async function detectQRCodeFromProcessedDataUrl(processedDataUrl) {
   }
 }
 
-// Add detection event listener to QRCode instance
+// Event listener to QRCode detection
 qrcode.on('detect', e => {
   const resultText = e.data ? `QR Code Detected: ${e.data}` : 'No QR Code';
   displayResult(resultText);
@@ -81,21 +81,18 @@ $(document).ready(function() {
   $('#scan-btn').click(function() {
     resetPreviousWork();
     chrome.runtime.sendMessage({action: "captureTab"}, function(response) {
-      if(response && response.success) {
-          console.log('Tab captured successfully.');
-      } else {
-          console.error('Failed to capture tab.');
-      }
+      // Console log based on response
     });
   });
-});
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.action === "imageCaptured") {
-    const dataUrl = request.dataUrl;
-    processImageForQRCode(dataUrl);
-    sendResponse({status: "Image Processed"});
-  }
+  // Listener for processing selected image
+  chrome.runtime.onMessage.addListener(function(request, _sender, sendResponse) {
+    if (request.action === "processSelectedImage") {
+      const dataUrl = request.dataUrl;
+      processImageForQRCode(dataUrl);
+      sendResponse({status: "Selected image area is being processed"});
+    }
+  });
 });
 
 localButton.addEventListener('click', () => {
@@ -115,7 +112,5 @@ imageInput.addEventListener('change', (event) => {
     console.error('No file selected.');
   }
 });
-
-
 
 resetButton.addEventListener('click', resetPreviousWork);
