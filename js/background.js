@@ -1,40 +1,25 @@
 'use strict';
 
-// Listen for messages from content scripts or the extension's pages
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.action === "injectScript") {
-    // Injects the required scripts into the current active tab
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      if (tabs.length > 0) {
-        chrome.scripting.executeScript({
-          target: {tabId: tabs[0].id},
-          files: ['data/window/src/html2canvas.min.js']
-        }, function() {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "captureTab") {
+      chrome.tabs.captureVisibleTab(null, {format: 'png', quality: 100}, (imageUri) => {
           if (chrome.runtime.lastError) {
-            console.error("Error injecting html2canvas: ", chrome.runtime.lastError.message);
-            return;
+              console.error('Error capturing the tab: ', chrome.runtime.lastError.message);
+              sendResponse({success: false, error: "Failed to capture tab"});
+          } else {
+              chrome.tabs.create({url: `image_display.html#${encodeURIComponent(imageUri)}`});
+              sendResponse({success: true});
           }
-          // After injecting html2canvas, proceed to inject capture.js
-          chrome.scripting.executeScript({
-            target: {tabId: tabs[0].id},
-            files: ['data/window/capture.js']
-          }, function() {
-            if (chrome.runtime.lastError) {
-              console.error("Error injecting capture.js: ", chrome.runtime.lastError.message);
-            } else {
-              // Initiate the capture process by sending a message to the content script
-              chrome.tabs.sendMessage(tabs[0].id, {action: "initiatecapture"}, function(response) {
-                if(chrome.runtime.lastError) {
-                  console.error("Error initiating capture: ", chrome.runtime.lastError.message);
-                } else {
-                  console.log("Capture initiated: ", response);
-                }
-              });
-            }
-          });
-        });
-      }
-    });
-    return true; // Indicates an asynchronous response
+      });
+      return true; // Indicate async response
+  } else if (request.action === "imageSelectedForQR") {
+      // TODO: Handle the QR code processing of the selected area here
+      console.log('QR processing to be implemented for: ', request.dataUrl);
+
+      // Placeholder response until QR processing is implemented
+      sendResponse({success: true, message: 'QR processing to be implemented'});
+
+      // After processing, you might need to communicate back to the content script or popup
+      return true; // If QR processing is async, return true
   }
 });

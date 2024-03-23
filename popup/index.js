@@ -24,7 +24,7 @@ const displayResult = (resultText) => {
 };
 
 // Initialize an image processing web worker
-const imageProcessingWorker = new Worker('web_worker.js');
+const imageProcessingWorker = new Worker('js/web_worker.js');
 imageProcessingWorker.onmessage = async function(event) {
   const { action, processedDataUrl } = event.data;
   if (action === 'imageProcessed') {
@@ -77,11 +77,15 @@ const resetPreviousWork = () => {
   imageInput.value = '';
 };
 
-scanButton.addEventListener('click', function() {
-  resetPreviousWork();
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    chrome.runtime.sendMessage({action: "injectScript"}, (response) => {
-      console.log("Response from background:", response);
+$(document).ready(function() {
+  $('#scan-btn').click(function() {
+    resetPreviousWork();
+    chrome.runtime.sendMessage({action: "captureTab"}, function(response) {
+      if(response && response.success) {
+          console.log('Tab captured successfully.');
+      } else {
+          console.error('Failed to capture tab.');
+      }
     });
   });
 });

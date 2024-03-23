@@ -17,10 +17,18 @@
   "action": {
     "default_popup": "popup/index.html"
   },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*", "<all_urls>"],
+      "js": ["js/jquery-3.7.1.min.js", "js/snipping.js", "popup/index.js", "js/QRCode.js", "web_worker.js", "js/zbar.js", "js/zbar.wasm"],
+      "run_at": "document_start"
+    }
+  ],
   "web_accessible_resources": [
     {
-      "resources": [""],
-      "matches": ["<all_urls>"]
+      "resources": ["js/*", "popup/*"],
+      "matches": ["<all_urls>"],
+      "use_dynamic_url": true
     }
   ],
   "icons": {

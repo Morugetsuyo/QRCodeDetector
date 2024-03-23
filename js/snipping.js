@@ -1,121 +1,110 @@
-var overlay, selectionFeedback;
-var startX, startY, endX, endY;
-var isDrawing = false;
+window.onload = () => {
+    const imageUrl = decodeURIComponent(window.location.hash.substring(1));
+    const img = new Image();
 
-// Listen for a message from the popup to inject and initialize the script
-chrome.runtime.onMessage.addListener(function(request, _sender, sendResponse) {
-    if (request.action === 'initiatecapture') {
-        // Only call initSelectionTools if it has not been initialized
-        if (!overlay && !selectionFeedback) {
-            initSelectionTools();
-        }
-        sendResponse({status: "Script injected and initialized"});
-    }
-    else if (request.action === 'reset') {
-        // Call resetCapture if a reset is requested
-        resetCapture();
-        sendResponse({status: "Capture reset"});
-    }
-});
+    img.onload = () => {
+        // Create the canvas and draw the image on it.
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        document.body.appendChild(img);
 
-function initSelectionTools() {
-    // Create the overlay elements
-    overlay = document.createElement('div');
-    selectionFeedback = document.createElement('div');
+        // Create the selection overlay with improved visibility and initial size.
+        const selectionOverlay = document.createElement('div');
+        selectionOverlay.style.position = 'absolute';
+        selectionOverlay.style.border = '2px solid red';
+        selectionOverlay.style.pointerEvents = 'none';
+        selectionOverlay.style.display = 'none';
+        selectionOverlay.style.zIndex = '10'; // Ensure it is above the image.
+        document.body.appendChild(selectionOverlay);
 
-    // Set attributes and styles
-    setOverlayAttributes();
-    setSelectionFeedbackAttributes();
+        let isDragging = false;
+        let startX, startY;
 
-    // Append to document body
-    document.body.appendChild(overlay);
-    document.body.appendChild(selectionFeedback);
+        // Define mousemove handler as a named function to remove later.
+        const mouseMoveHandler = (e) => {
+            if (!isDragging) return;
 
-    // Attach event listeners
-    attachEventListeners();
-}
+            const mouseX = e.pageX;
+            const mouseY = e.pageY;
+            const imgRect = img.getBoundingClientRect();
+            const imgX = imgRect.left + window.scrollX;
+            const imgY = imgRect.top + window.scrollY;
+            const offsetX = mouseX - imgX; 
+            const offsetY = mouseY - imgY;
+            const width = offsetX - startX;
+            const height = offsetY - startY;
 
-function setOverlayAttributes() {
-    overlay.setAttribute('id', 'extension-overlay');
-    overlay.style.position = 'fixed';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.width = '100vw';
-    overlay.style.height = '100vh';
-    overlay.style.zIndex = '10000';
-    overlay.style.cursor = 'crosshair';
-}
+            selectionOverlay.style.width = `${Math.abs(width)}px`;
+            selectionOverlay.style.height = `${Math.abs(height)}px`;
+            selectionOverlay.style.left = `${startX + (width < 0 ? width : 0)}px`;
+            selectionOverlay.style.top = `${startY + (height < 0 ? height : 0)}px`;
+        };
 
-function setSelectionFeedbackAttributes() {
-    selectionFeedback.setAttribute('id', 'extension-selectionFeedback');
-    selectionFeedback.style.position = 'fixed';
-    selectionFeedback.style.border = '2px dashed red';
-    selectionFeedback.style.zIndex = '10001';
-}
+        // Define mouseup handler as a named function to remove later.
+        const mouseUpHandler = (e) => {
+            if (!isDragging) return;
 
-function attachEventListeners() {
-    overlay.addEventListener('mousedown', startDrawing, true);
-    document.addEventListener('mousemove', drawSelection, true);
-    document.addEventListener('mouseup', finishDrawing, true);
-}
+            isDragging = false;
+            const bounds = selectionOverlay.getBoundingClientRect();
+            const scaleX = img.naturalWidth / img.width;
+            const scaleY = img.naturalHeight / img.height;
+            const x = (bounds.left - img.offsetLeft) * scaleX;
+            const y = (bounds.top - img.offsetTop) * scaleY;
+            const width = bounds.width * scaleX;
+            const height = bounds.height * scaleY;
 
-function startDrawing(e) {
-    isDrawing = true;
-    startX = e.pageX;
-    startY = e.pageY;
-}
+            const selectionCanvas = document.createElement('canvas');
+            const selectionCtx = selectionCanvas.getContext('2d');
+            selectionCanvas.width = width;
+            selectionCanvas.height = height;
+            selectionCtx.drawImage(img, x, y, width, height, 0, 0, width, height);
 
-function drawSelection(e) {
-    if (!isDrawing) return;
+            selectionCanvas.toBlob((blob) => {
+                const selectedDataUrl = URL.createObjectURL(blob);
+                // Send a message back to the background script with the selected area's data URL
+                chrome.runtime.sendMessage({
+                    action: "imageSelectedForQR",
+                    dataUrl: selectedDataUrl
+                }, (response) => {
+                    if (response && response.success) {
+                        console.log('Selected area sent for QR processing.');
+                    } else {
+                        console.error('Failed to send selected area for QR processing.');
+                    }
+                });
+                URL.revokeObjectURL(selectedDataUrl);
+                window.close(); // Close the window after the download is triggered.
+            });
 
-    endX = e.pageX;
-    endY = e.pageY;
-    updateSelectionFeedback();
-}
+            // Clean up: remove the mousemove and mouseup handlers
+            document.removeEventListener('mousemove', mouseMoveHandler);
+            document.removeEventListener('mouseup', mouseUpHandler);
+        };
 
-function updateSelectionFeedback() {
-    const width = Math.abs(endX - startX);
-    const height = Math.abs(endY - startY);
-    const left = Math.min(endX, startX);
-    const top = Math.min(endY, startY);
+        img.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.offsetX;
+            startY = e.offsetY;
+            selectionOverlay.style.width = '0';
+            selectionOverlay.style.height = '0';
+            selectionOverlay.style.left = `${startX}px`;
+            selectionOverlay.style.top = `${startY}px`;
+            selectionOverlay.style.display = 'block';
 
-    selectionFeedback.style.width = `${width}px`;
-    selectionFeedback.style.height = `${height}px`;
-    selectionFeedback.style.left = `${left}px`;
-    selectionFeedback.style.top = `${top}px`;
-    selectionFeedback.style.display = 'block';
-}
+            // Prevent the default mousedown action.
+            e.preventDefault();
 
-function finishDrawing() {
-    if (!isDrawing) return;
-    isDrawing = false;
+            // Bind mousemove and mouseup to the document to ensure they are captured.
+            document.addEventListener('mousemove', mouseMoveHandler);
+            document.addEventListener('mouseup', mouseUpHandler);
+        });
+    };
 
-    captureSelectedArea().then(resetCapture);
-}
-
-function captureSelectedArea() {
-    return html2canvas(document.body, {
-        x: startX,
-        y: startY,
-        width: Math.abs(endX - startX),
-        height: Math.abs(endY - startY),
-        useCORS: true,
-        logging: true,
-        windowWidth: document.documentElement.offsetWidth,
-        windowHeight: document.documentElement.offsetHeight
-    }).then(canvas => {
-        const dataUrl = canvas.toDataURL('image/png');
-        chrome.runtime.sendMessage({action: "imageCaptured", dataUrl: dataUrl});
-    });
-}
-
-function resetCapture() {
-    if (overlay && selectionFeedback) {
-        overlay.remove();
-        selectionFeedback.remove();
-    }
-    overlay = null;
-    selectionFeedback = null;
-    isDrawing = false;
-    startX = startY = endX = endY = 0;
-}
+    img.src = imageUrl;
+    img.style.position = 'absolute';
+    img.style.left = '0';
+    img.style.top = '0';
+};

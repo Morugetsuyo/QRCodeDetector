@@ -58,3 +58,6 @@ Updates:
 3.0.1: Implemented tab capturing code using html2canvas
 
 https://www.goodreads.com/book/show/4865.How_to_Win_Friends_and_Influence_People
+
+
+jCrop plugin
