@@ -3,13 +3,7 @@
   "version": "3.0.1",
   "name": "QR Code Detector dev_ver-var OS compatible model",
   "description": "QR Code Detector dev_ver-var OS compatible model",
-  "permissions": [
-    "activeTab",
-    "tabs",
-    "storage",
-    "contextMenus",
-    "scripting"
-  ],
+  "permissions": ["activeTab", "tabs", "storage", "contextMenus", "scripting"],
   "optional_permissions": [
     "declarativeNetRequestWithHostAccess",
     "sidePanel"
@@ -18,22 +12,22 @@
     "*://*/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "js/background.js"
   },
   "action": {
-    "default_popup": "data/window/index.html"
+    "default_popup": "popup/index.html"
   },
   "web_accessible_resources": [
     {
-      "resources": ["data/window/index.html", "data/window/web_worker.js", "", "background.js", "data/window/capture.js", "data/window/ZBar/zbar.js", "data/window/ZBar/zbar.wams"],
+      "resources": [""],
       "matches": ["<all_urls>"]
     }
   ],
   "icons": {
-    "16": "data/icons.png",
-    "32": "data/icons.png",
-    "48": "data/icons.png",
-    "128": "data/icons.png"
+    "16": "icons/icons.png",
+    "32": "icons/icons.png",
+    "48": "icons/icons.png",
+    "128": "icons/icons.png"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
