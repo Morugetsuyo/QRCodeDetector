@@ -11,12 +11,12 @@ const resetButton = document.getElementById('reset-btn');
 const qrcode = new QRCode();
 
 // Helper function to display image and results
-const displayImage = (dataUrl) => {
+function displayImage(dataUrl) {
   imageDisplayArea.innerHTML = ''; // Clear the image area first
   const img = document.createElement('img');
   img.src = dataUrl;
   imageDisplayArea.appendChild(img);
-};
+}
 
 // Helper function to display results
 const displayResult = (resultText) => {
@@ -24,7 +24,7 @@ const displayResult = (resultText) => {
 };
 
 // Initialize an image processing web worker
-const imageProcessingWorker = new Worker('js/web_worker.js');
+const imageProcessingWorker = new Worker('../js/web_worker.js');
 imageProcessingWorker.onmessage = async function(event) {
   const { action, processedDataUrl } = event.data;
   if (action === 'imageProcessed') {

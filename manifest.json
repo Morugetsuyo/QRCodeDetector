@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "3.0.1",
+  "version": "3.1.1",
   "name": "QR Code Detector dev_ver-var OS compatible model",
   "description": "QR Code Detector dev_ver-var OS compatible model",
   "permissions": ["activeTab", "tabs", "storage", "contextMenus", "scripting"],
@@ -20,7 +20,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*", "<all_urls>"],
-      "js": ["js/jquery-3.7.1.min.js", "js/snipping.js", "popup/index.js", "js/QRCode.js", "web_worker.js", "js/zbar.js", "js/zbar.wasm"],
+      "js": ["js/jquery-3.7.1.min.js", "js/snipping.js", "popup/index.js", "popup/QRCode.js", "js/web_worker.js", "js/zbar.js"],
       "run_at": "document_start"
     }
   ],
