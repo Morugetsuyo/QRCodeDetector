@@ -1,29 +1,3 @@
-/*
-'use strict';
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "captureTab") {
-    chrome.tabs.captureVisibleTab(null, {format: 'png', quality: 100}, (imageUri) => {
-      if (chrome.runtime.lastError) {
-        console.error('Error capturing the tab: ', chrome.runtime.lastError.message);
-        sendResponse({success: false, error: "Failed to capture tab"});
-      } else {
-        chrome.windows.create({url: `image_display.html#${encodeURIComponent(imageUri)}`, type: "popup"}, () => {
-        });
-        sendResponse({success: true, imageUri: imageUri});
-      }
-    });
-    return true; // Indicates an asynchronous response.
-  } else if (request.action === "imageSelectedForQR") {
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, {action: "processSelectedImage", dataUrl: request.dataUrl});
-    });
-    sendResponse({success: true, message: 'Selected area sent for QR processing'});
-    return true; // Indicates an asynchronous response.
-  }
-});
-*/
-
 'use strict';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
