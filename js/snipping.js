@@ -10,7 +10,6 @@ window.onload = () => {
 };
 
 function enableQRSelection(img) {
-    // Create the selection overlay with improved visibility and initial size
     const selectionOverlay = document.createElement('div');
     selectionOverlay.style.position = 'absolute';
     selectionOverlay.style.border = '2px solid red';

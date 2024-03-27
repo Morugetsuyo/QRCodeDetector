@@ -76,9 +76,9 @@ const resetPreviousWork = () => {
   qrcode.resetDetection();
   imageInput.value = '';
 };
-
+/*
 if (typeof window.messageListenerAdded === 'undefined') {
-  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  chrome.runtime.onMessage.addListener(function(request, _sender, sendResponse) {
     if (request.action === "processSelectedImage") {
       const dataUrl = request.dataUrl;
       processImageForQRCode(dataUrl);
@@ -101,13 +101,34 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
-
-  // Add other event listeners as needed
 });
+*/
+document.addEventListener('DOMContentLoaded', function() {
+  // Check for stored image data and process it if found
+  chrome.storage.local.get(['selectedImageData'], function(result) {
+    if (result.selectedImageData) {
+      processImageForQRCode(result.selectedImageData);
+      chrome.storage.local.remove(['selectedImageData'], () => {
+        console.log('Selected image data removed.');
+      });
+    }
+  });
+  document.getElementById('scan-btn').addEventListener('click', function() {
+    resetPreviousWork();
+    chrome.runtime.sendMessage({ action: "captureTab" }, function(response) {
+      if (response && response.success) {
+        console.log('Tab captured successfully.');
+      } else {
+        console.error('Failed to capture tab.');
+      }
+    });
+  });
+});
+
 
 localButton.addEventListener('click', () => {
   resetPreviousWork();
-  imageInput.click(); // Simulate a click on the hidden file input
+  imageInput.click(); 
 });
     
 imageInput.addEventListener('change', (event) => {
