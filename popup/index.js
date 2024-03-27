@@ -76,33 +76,7 @@ const resetPreviousWork = () => {
   qrcode.resetDetection();
   imageInput.value = '';
 };
-/*
-if (typeof window.messageListenerAdded === 'undefined') {
-  chrome.runtime.onMessage.addListener(function(request, _sender, sendResponse) {
-    if (request.action === "processSelectedImage") {
-      const dataUrl = request.dataUrl;
-      processImageForQRCode(dataUrl);
-      sendResponse({ status: "Selected image area is being processed" });
-    }
-    // Make sure to return true if you want to send a response asynchronously
-    return true;
-  });
-  window.messageListenerAdded = true;
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('scan-btn').addEventListener('click', function() {
-    resetPreviousWork();
-    chrome.runtime.sendMessage({ action: "captureTab" }, function(response) {
-      if (response && response.success) {
-        console.log('Tab captured successfully.');
-      } else {
-        console.error('Failed to capture tab.');
-      }
-    });
-  });
-});
-*/
 document.addEventListener('DOMContentLoaded', function() {
   // Check for stored image data and process it if found
   chrome.storage.local.get(['selectedImageData'], function(result) {
