@@ -1,14 +1,3 @@
-window.onload = () => {
-    const imageUrl = decodeURIComponent(window.location.hash.substring(1));
-    const imageElement = document.getElementById('capturedImage');
-    if (imageElement && imageUrl) {
-        imageElement.src = imageUrl;
-        imageElement.onload = () => {
-            enableQRSelection(imageElement); // Activate QR selection on the loaded image
-        };
-    }
-};
-
 function enableQRSelection(img) {
     const selectionOverlay = document.createElement('div');
     selectionOverlay.style.position = 'absolute';
@@ -79,7 +68,6 @@ function enableQRSelection(img) {
 };
 
 function processSelectedArea(image, x, y, width, height) {
-    // Create a canvas to draw the selected area for QR processing
     const selectionCanvas = document.createElement('canvas');
     const selectionCtx = selectionCanvas.getContext('2d');
     selectionCanvas.width = width;
@@ -87,19 +75,10 @@ function processSelectedArea(image, x, y, width, height) {
     selectionCtx.drawImage(image, x, y, width, height, 0, 0, width, height);
 
     selectionCanvas.toBlob((blob) => {
-        const selectedDataUrl = URL.createObjectURL(blob);
-        // Send a message back to the background script with the selected area's data URL
-        chrome.runtime.sendMessage({
-            action: "imageSelectedForQR",
-            dataUrl: selectedDataUrl
-        }, (response) => {
-            if (response && response.success) {
-                console.log('Selected area sent for QR processing.');
-                window.close(); // Close the window after processing
-            } else {
-                console.error('Failed to send selected area for QR processing.');
-            }
-        });
-        URL.revokeObjectURL(selectedDataUrl);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'captured-image.png'; // You can choose the filename
+        a.click();
     });
 }
+

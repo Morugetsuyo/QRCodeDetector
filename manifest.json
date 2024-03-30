@@ -17,7 +17,12 @@
     "service_worker": "js/background.js"
   },
   "action": {
-    "default_popup": "popup/index.html"
+    "default_icon": {
+      "16": "icons/icons.png",
+      "32": "icons/icons.png",
+      "48": "icons/icons.png",
+      "128": "icons/icons.png"
+    }
   },
   "content_scripts": [
     {
@@ -34,7 +39,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["js/*", "popup/*"],
+      "resources": ["js/*", "popup/*", "iamge.png"],
       "matches": ["<all_urls>"],
       "use_dynamic_url": true
     }

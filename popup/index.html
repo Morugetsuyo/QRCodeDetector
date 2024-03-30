@@ -2,31 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Code Detector</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="popup-container">
-    <div class="btn-area">
-      <button id="scan-btn">Scan</button>
-      <button id="local-btn">Local</button>
-    </div>
-    <input type="file" id="image-input" accept="image/*" style="display: none;">
-    <div id="image-display-area">
-      <div class="overlay-text">Image will be displayed here</div>
-    </div>
-    <div id="text">Result</div>
-    <div id="result-display-area">
-      <div class="overlay-text">Result will be displayed here</div>
-    </div>
+  <div class="button-bar">
+    <button id="scan-btn">Scan</button>
+    <button id="local-btn">Local</button>
     <button id="reset-btn">Reset</button>
+    <button id="exit-btn">Exit</button>
+    <div id="result-display-area">Result-display-area</div>
   </div>
-  <script src="QRCode.js"></script>
-  <script src="index.js"></script>
+  <div id="image-display-area">image-display-area</div>
   <script src="../js/jquery-3.7.1.min.js"></script>
   <script src="../js/snipping.js"></script>
   <script src="../js/zbar.js"></script>
   <script src="web_worker.js"></script>
+  <script src="QRCode.js"></script>
+  <script src="index.js"></script>
 </body>
 </html>

@@ -7,6 +7,7 @@ const imageInput = document.getElementById('image-input');
 const scanButton = document.getElementById('scan-btn');
 const localButton = document.getElementById('local-btn');
 const resetButton = document.getElementById('reset-btn');
+const exitButton = document.getElementById('exit-btn');
 
 const qrcode = new QRCode();
 
@@ -34,22 +35,17 @@ imageProcessingWorker.onmessage = async function(event) {
 };
 
 // Processes the image for QR Code detection
-const processImageForQRCode = (dataUrl) => {
-  displayImage(dataUrl); // Display the origian image (will be deprecated)
-  displayResult('Processing image...');
-
-  // Convert the data URL to a blob and send it to the worker for processing
+window.processImageForQRCode = function(dataUrl) {
+  // Convert Data URL to Blob, then post to web worker
   fetch(dataUrl)
-    .then(response => response.blob())
-    .then(blob => {
-      const reader = new FileReader();
-      reader.readAsArrayBuffer(blob);
-      reader.onloadend = () => {
-        // Post the image data to the worker for processing
-        imageProcessingWorker.postMessage({ action: 'processImage', imageData: reader.result }, [reader.result]);
-      };
-    });
-};
+      .then(res => res.blob())
+      .then(blob => {
+          imageProcessingWorker.postMessage({action: "processImage", imageData: blob});
+      });
+}
+
+// Make the function globally accessible if needed by `snipping.js`
+window.processImageForQRCode = processImageForQRCode;
 
 // Helper function to initiate QR code detection on a processed image
 async function detectQRCodeFromProcessedDataUrl(processedDataUrl) {
@@ -77,45 +73,59 @@ const resetPreviousWork = () => {
   imageInput.value = '';
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-  // Check for stored image data and process it if found
-  chrome.storage.local.get(['selectedImageData'], function(result) {
-    if (result.selectedImageData) {
-      processImageForQRCode(result.selectedImageData);
-      chrome.storage.local.remove(['selectedImageData'], () => {
-        console.log('Selected image data removed.');
-      });
-    }
-  });
-  document.getElementById('scan-btn').addEventListener('click', function() {
-    resetPreviousWork();
-    chrome.runtime.sendMessage({ action: "captureTab" }, function(response) {
-      if (response && response.success) {
-        console.log('Tab captured successfully.');
-      } else {
-        console.error('Failed to capture tab.');
-      }
-    });
-  });
-});
 
 
-localButton.addEventListener('click', () => {
+
+
+document.getElementById('local-btn').addEventListener('click', () => {
+  // Reset previous work if any
   resetPreviousWork();
-  imageInput.click(); 
-});
-    
-imageInput.addEventListener('change', (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      processImageForQRCode(e.target.result);
-    };
-    reader.readAsDataURL(file);
-  } else {
-    console.error('No file selected.');
-  }
+
+  // Create a file input element and trigger click event to open file dialog
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        // Display the local image in image-display-area
+        displayImage(event.target.result);
+        // Remove previously captured image if needed
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  fileInput.click();
 });
 
 resetButton.addEventListener('click', resetPreviousWork);
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const imageDisplayArea = document.getElementById('image-display-area');
+  const imageUri = decodeURIComponent(window.location.hash.substring(1));
+  
+  if (imageUri) {
+    const img = document.createElement('img');
+    img.src = imageUri;
+    imageDisplayArea.innerHTML = '';
+    imageDisplayArea.appendChild(img);
+
+    img.onload = () => {
+      enableQRSelection(img);
+    };
+  }
+});
+
+
+document.getElementById('exit-btn').addEventListener('click', () => {
+  window.close();
+});
+
+
+
+
+
