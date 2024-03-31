@@ -22,16 +22,12 @@ TCS_QR(ZBar_dev) - Win
 └── README.md
 
 
-
-Issues:
-1. Shows different decoding abilities based on the working platform (MacOS >>> Windows)
-
 Objectives:
-1. Optimizing WebAssembly Module Loading (lazy loading & caching wasm module)
-2. Using Web Workers for Image processing (QRCode.js)
-3. Consider implementing Polyfill & distortion correction libraries. (https://jywarren.github.io/fisheyegl/example/#a=0.942&b=0.865&Fx=0.42&Fy=0.34&scale=0.527&x=0.266&y=0.489)
-4. Enhance sharpening the edges (e.g. sobel edge detection algorithm)
-5. Process image and highlight the detected area (Add polygon)
+1. activate 'Scan' button element
+2. Implement 'Local' button element
+3. Refactor the 'image-display-area'
+
+
 
 Updates:
 1.0.2: Fixed bugs on 'reset' logic

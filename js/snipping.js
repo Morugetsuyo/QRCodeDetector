@@ -13,31 +13,36 @@ function enableQRSelection(img) {
     const mouseMoveHandler = (e) => {
         if (!isDragging) return;
 
+        // Updated: Recalculate imgRect here to ensure it's up-to-date
+        const imgRect = img.getBoundingClientRect();
+
         const mouseX = e.pageX;
         const mouseY = e.pageY;
-        const imgRect = img.getBoundingClientRect();
-        const imgX = imgRect.left + window.scrollX;
-        const imgY = imgRect.top + window.scrollY;
-        const offsetX = mouseX - imgX;
-        const offsetY = mouseY - imgY;
+        const offsetX = mouseX - imgRect.left - window.scrollX;
+        const offsetY = mouseY - imgRect.top - window.scrollY;
+
         const width = offsetX - startX;
         const height = offsetY - startY;
 
         selectionOverlay.style.width = `${Math.abs(width)}px`;
         selectionOverlay.style.height = `${Math.abs(height)}px`;
-        selectionOverlay.style.left = `${startX + (width < 0 ? width : 0)}px`;
-        selectionOverlay.style.top = `${startY + (height < 0 ? height : 0)}px`;
+        selectionOverlay.style.left = `${Math.min(startX + imgRect.left + window.scrollX, mouseX)}px`;
+        selectionOverlay.style.top = `${Math.min(startY + imgRect.top + window.scrollY, mouseY)}px`;
     };
 
     const mouseUpHandler = (e) => {
         if (!isDragging) return;
 
         isDragging = false;
+        
+        // Moved inside mouseUpHandler to ensure it's defined
+        const imgRect = img.getBoundingClientRect();
+        
         const bounds = selectionOverlay.getBoundingClientRect();
         const scaleX = img.naturalWidth / img.width;
         const scaleY = img.naturalHeight / img.height;
-        const x = (bounds.left - img.offsetLeft) * scaleX;
-        const y = (bounds.top - img.offsetTop) * scaleY;
+        const x = (bounds.left - imgRect.left - window.scrollX) * scaleX;
+        const y = (bounds.top - imgRect.top - window.scrollY) * scaleY;
         const width = bounds.width * scaleX;
         const height = bounds.height * scaleY;
 
@@ -52,12 +57,16 @@ function enableQRSelection(img) {
 
     img.addEventListener('mousedown', (e) => {
         isDragging = true;
-        startX = e.offsetX;
-        startY = e.offsetY;
+        
+        // Calculate the initial position here, at the start of the drag
+        const imgRect = img.getBoundingClientRect();
+        startX = e.pageX - imgRect.left - window.scrollX;
+        startY = e.pageY - imgRect.top - window.scrollY;
+
         selectionOverlay.style.width = '0';
         selectionOverlay.style.height = '0';
-        selectionOverlay.style.left = `${startX}px`;
-        selectionOverlay.style.top = `${startY}px`;
+        selectionOverlay.style.left = `${e.pageX}px`; // This needs correction based on new startX calculation
+        selectionOverlay.style.top = `${e.pageY}px`; // This needs correction based on new startY calculation
         selectionOverlay.style.display = 'block';
 
         // Bind mousemove and mouseup to the document to ensure they are captured
@@ -74,11 +83,6 @@ function processSelectedArea(image, x, y, width, height) {
     selectionCanvas.height = height;
     selectionCtx.drawImage(image, x, y, width, height, 0, 0, width, height);
 
-    selectionCanvas.toBlob((blob) => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'captured-image.png'; // You can choose the filename
-        a.click();
-    });
+    const dataUrl = selectionCanvas.toDataURL();
+    document.dispatchEvent(new CustomEvent('captureCompleted', {detail: dataUrl}));
 }
-

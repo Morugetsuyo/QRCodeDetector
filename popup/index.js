@@ -35,17 +35,22 @@ imageProcessingWorker.onmessage = async function(event) {
 };
 
 // Processes the image for QR Code detection
-window.processImageForQRCode = function(dataUrl) {
-  // Convert Data URL to Blob, then post to web worker
-  fetch(dataUrl)
-      .then(res => res.blob())
-      .then(blob => {
-          imageProcessingWorker.postMessage({action: "processImage", imageData: blob});
-      });
-}
+const processImageForQRCode = (dataUrl) => {
+  displayImage(dataUrl); // Display the origian image (will be deprecated)
+  displayResult('Processing image...');
 
-// Make the function globally accessible if needed by `snipping.js`
-window.processImageForQRCode = processImageForQRCode;
+  // Convert the data URL to a blob and send it to the worker for processing
+  fetch(dataUrl)
+    .then(response => response.blob())
+    .then(blob => {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(blob);
+      reader.onloadend = () => {
+        // Post the image data to the worker for processing
+        imageProcessingWorker.postMessage({ action: 'processImage', imageData: reader.result }, [reader.result]);
+      };
+    });
+};
 
 // Helper function to initiate QR code detection on a processed image
 async function detectQRCodeFromProcessedDataUrl(processedDataUrl) {
@@ -73,10 +78,7 @@ const resetPreviousWork = () => {
   imageInput.value = '';
 };
 
-
-
-
-
+/*
 document.getElementById('local-btn').addEventListener('click', () => {
   // Reset previous work if any
   resetPreviousWork();
@@ -99,9 +101,8 @@ document.getElementById('local-btn').addEventListener('click', () => {
   };
   fileInput.click();
 });
-
+*/
 resetButton.addEventListener('click', resetPreviousWork);
-
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -115,9 +116,15 @@ document.addEventListener('DOMContentLoaded', () => {
     imageDisplayArea.appendChild(img);
 
     img.onload = () => {
-      enableQRSelection(img);
+      document.getElementById('scan-btn').addEventListener('click', function() {
+        enableQRSelection(img);
+      });
     };
   }
+  document.addEventListener('captureCompleted', function(event) {
+    const dataUrl = event.detail;
+    processImageForQRCode(dataUrl);
+  })
 });
 
 
