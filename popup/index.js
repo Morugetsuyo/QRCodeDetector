@@ -78,30 +78,24 @@ const resetPreviousWork = () => {
   imageInput.value = '';
 };
 
-/*
-document.getElementById('local-btn').addEventListener('click', () => {
-  // Reset previous work if any
+localButton.addEventListener('click', () => {
   resetPreviousWork();
-
-  // Create a file input element and trigger click event to open file dialog
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*';
-  fileInput.onchange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        // Display the local image in image-display-area
-        displayImage(event.target.result);
-        // Remove previously captured image if needed
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  fileInput.click();
+  imageInput.click(); 
 });
-*/
+    
+imageInput.addEventListener('change', (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      processImageForQRCode(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    console.error('No file selected.');
+  }
+});
+
 resetButton.addEventListener('click', resetPreviousWork);
 
 
