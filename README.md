@@ -1,9 +1,9 @@
-# QRCodeDetector_TEST
+# QRCodeDetector_PILOT
 Pilot Version 
 
 TCS_QR(ZBar_dev) - Win
 ├── icons
-│   └── icons.png (deprecated)
+│   └── icons.png 
 ├── js
 │   ├── background.js
 │   ├── jquery-3.7.1.min.js
@@ -17,19 +17,10 @@ TCS_QR(ZBar_dev) - Win
 │   ├── style.css
 │   └── web_worker.js
 ├── .gitignore
-├── image_display.html
 ├── manifest.json
 └── README.md
 
-
-Objectives:
-1. activate 'Scan' button element
-2. Implement 'Local' button element
-3. Refactor the 'image-display-area'
-
-
-
-Updates:
+Updates(Builder):
 1.0.2: Fixed bugs on 'reset' logic
 1.1.0: Fixed bugs on 'display-area' and improve popup UI
 1.1.4: Fixed bugs on decoding logic
@@ -44,9 +35,9 @@ Updates:
 2.1.1: test ver. (communication check between index.js and contentScript.js)
 2.2.1: Optimization 
 2.5.1: Fix link chrome.tab.sendMessage & chrome.tab.onMessage flow
-3.0.1: Implemented tab capturing code using html2canvas
+3.0.1: Implemented tab capturing code using html2canvas (jCrop plugin)
+--------------------------------------------------------------------------------------------------------
+1.0.0: Pilot Program
 
-https://www.goodreads.com/book/show/4865.How_to_Win_Friends_and_Influence_People
 
 
-jCrop plugin
